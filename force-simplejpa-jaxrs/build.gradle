@@ -1,0 +1,16 @@
+apply plugin: 'java'
+
+description = 'Simple Entity Manager for Salesforce - JAX-RS components'
+
+dependencies {
+    compile project(":force-simplejpa-core")
+    compile "org.slf4j:slf4j-api:${slf4jVersion}"
+    compile "javax.servlet:javax.servlet-api:${javaxServletVersion}"
+    compile "org.glassfish.hk2.external:javax.inject:${glassfishInjectVersion}"
+    compile "com.sun.jersey:jersey-core:${jerseyVersion}"
+    compile "com.sun.jersey:jersey-json:${jerseyVersion}"
+    compile "com.sun.jersey:jersey-client:${jerseyVersion}"
+    compile "org.springframework:spring-beans:${springVersion}"
+
+    testCompile "junit:junit:${junitVersion}"
+}

@@ -1,0 +1,14 @@
+apply plugin: 'java'
+
+description = 'Simple Entity Manager for Salesforce - Core components'
+
+dependencies {
+    compile "org.slf4j:slf4j-api:${slf4jVersion}"
+    compile "commons-lang:commons-lang:${commonsLangVersion}"
+    compile "org.apache.geronimo.specs:geronimo-jpa_2.0_spec:${geronimoJpaVesion}"
+    compile "org.codehaus.jackson:jackson-mapper-asl:${jacksonVersion}"
+
+    testCompile "junit:junit:${junitVersion}"
+    testCompile "org.easymock:easymock:${easymockVersion}"
+    testCompile "ch.qos.logback:logback-classic:${logbackVersion}"
+}

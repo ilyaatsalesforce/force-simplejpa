@@ -1,0 +1,134 @@
+configure(rootProject) {
+    description = 'Simple Entity Manager for Salesforce'
+
+    ext.gitHash = 'git log -1 --format=%H'.execute().text.trim()
+}
+
+configure(allprojects) {
+    apply plugin: 'eclipse'
+    apply plugin: 'idea'
+    apply plugin: 'maven'
+
+    group = "net.davidbuccola.${rootProject.name}"
+
+    ext.gitHash = rootProject.gitHash  // So we don't execute git command multiple times
+
+    repositories {
+        mavenCentral()
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+    }
+
+    idea {
+        module {
+            inheritOutputDirs = false
+            outputDir = file("${project.buildDir}/classes/main")
+            testOutputDir = file("${project.buildDir}/classes/test")
+        }
+    }
+}
+
+configure(subprojects) {
+    apply plugin: 'java'
+    apply plugin: 'osgi'
+
+    if (System.getProperty("strict") != null) {
+        apply plugin: 'checkstyle'
+        apply plugin: 'findbugs'
+
+        checkstyle {
+            configFile = file("$rootProject.projectDir/config/checkstyle/checkstyle.xml")
+        }
+
+        tasks.withType(FindBugs) {
+            excludeFilter = file("$rootProject.projectDir/config/findbugs/excludeFilter.xml")
+        }
+    }
+
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        classifier = 'sources'
+        from sourceSets.main.allJava.srcDirs
+    }
+
+    task javadocJar(type: Jar) {
+        classifier = 'javadoc'
+        from javadoc.destinationDir
+    }
+
+    artifacts {
+        archives sourcesJar
+        archives javadocJar
+    }
+
+    jar {
+        manifest {
+            instruction 'Source-Revision', gitHash
+        }
+    }
+
+    install {
+        repositories {
+            mavenInstaller {
+                pom.whenConfigured { generatedPom ->
+                    customizePom(generatedPom, project)
+                }
+            }
+        }
+    }
+
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                pom.whenConfigured { generatedPom ->
+                    customizePom(generatedPom, project)
+                }
+                repository(url: 'https://oss.sonatype.org/content/repositories/releases/') {
+                    if (project.hasProperty('sonatypeStagingUsername')) {
+                        authentication(userName: sonatypeStagingUsername, password: sonatypeStagingPassword)
+                    }
+                }
+                snapshotRepository(url: 'https://oss.sonatype.org/content/repositories/snapshots/') {
+                    if (project.hasProperty('sonatypeStagingUsername')) {
+                        authentication(userName: sonatypeStagingUsername, password: sonatypeStagingPassword)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Add extra items necessary for maven central publication
+def customizePom(pom, gradleProject) {
+    pom.project {
+        name = gradleProject.name
+        description = gradleProject.description
+        url = "https://github.com/davidbuccola/${rootProject.name}"
+        organization {
+            name = 'David Buccola'
+            url = 'https://github.com/davidbuccola'
+        }
+        developers {
+            developer {
+                id = 'davidbuccola'
+                name = 'David Buccola'
+                email = 'david.buccola@gmail.com'
+            }
+        }
+        scm {
+            url = "https://github.com/davidbuccola/${rootProject.name}"
+            connection = "scm:git:git://github.com/davidbuccola/${rootProject.name}"
+            developerConnection = "scm:git:git://github.com/davidbuccola/${rootProject.name}"
+        }
+        licenses {
+            license {
+                name 'The Apache Software License, Version 2.0'
+                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                distribution 'repo'
+            }
+        }
+    }
+}
+
+task wrapper(type: Wrapper) {
+    description = 'Generates gradlew[.bat] scripts'
+    gradleVersion = project.gradleVersion
+}

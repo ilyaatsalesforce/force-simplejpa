@@ -1,0 +1,2 @@
+include 'force-simplejpa-core'
+include 'force-simplejpa-jaxrs'

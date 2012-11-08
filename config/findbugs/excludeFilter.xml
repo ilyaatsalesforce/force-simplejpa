@@ -1,0 +1,14 @@
+<FindBugsFilter>
+    <Match>
+        <!-- This list originated from the Salesforce core source base. Should come back and refine to meet our -->
+        <!-- specific needs.  -->
+
+        <Bug pattern="DE_MIGHT_DROP,DE_MIGHT_IGNORE,
+        			  DLS_DEAD_LOCAL_STORE,
+                      DM_EXIT,
+                      EI_EXPOSE_REP,EI_EXPOSE_REP2,
+                      MS_EXPOSE_REP,
+                      RV_RETURN_VALUE_IGNORED_BAD_PRACTICE,
+                      SE_NO_SERIALVERSIONID"/>
+    </Match>
+</FindBugsFilter>
