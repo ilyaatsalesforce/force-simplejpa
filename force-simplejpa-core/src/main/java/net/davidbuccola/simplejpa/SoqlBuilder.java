@@ -38,7 +38,6 @@ import org.codehaus.jackson.map.BeanPropertyDefinition;
  * </pre>
  *
  * @author davidbuccola
- * @since 178
  */
 final class SoqlBuilder {
     private static final int DEFAULT_DEPTH = 5;
@@ -122,7 +121,7 @@ final class SoqlBuilder {
             return descriptor;
 
         throw new IllegalArgumentException(
-                String.format("Wildcard substitution for '%s' cannot be resolved", entityName));
+            String.format("Wildcard substitution for '%s' cannot be resolved", entityName));
     }
 
     private static EntityDescriptor getEntityDescriptor(EntityDescriptor candidateDescriptor, String entityName) {
@@ -185,9 +184,9 @@ final class SoqlBuilder {
 
     private static String getSubquery(EntityDescriptor descriptor, String fieldName, int depth) {
         return new SoqlBuilder(descriptor)
-                .soqlTemplate("(SELECT * from " + fieldName + ")")
-                .depth(depth)
-                .build();
+            .soqlTemplate("(SELECT * from " + fieldName + ")")
+            .depth(depth)
+            .build();
     }
 
     private static final class CacheKey {

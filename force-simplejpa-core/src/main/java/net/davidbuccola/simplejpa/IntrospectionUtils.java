@@ -26,9 +26,9 @@ import org.codehaus.jackson.map.introspect.AnnotatedMember;
  */
 abstract class IntrospectionUtils {
     private static final Set<String> STANDARD_FIELD_NAMES = Collections.unmodifiableSet(
-            new HashSet<String>(Arrays.asList(
-                    "Id", "Name", "CreatedBy", "CreatedDate", "LastModifiedBy", "LastModifiedDate", "Owner",
-                    "MasterLabel", "DeveloperName", "Language")));
+        new HashSet<String>(Arrays.asList(
+            "Id", "Name", "CreatedBy", "CreatedDate", "LastModifiedBy", "LastModifiedDate", "Owner",
+            "MasterLabel", "DeveloperName", "Language")));
 
     private IntrospectionUtils() {
         throw new UnsupportedOperationException("Can not be instantiated");
@@ -84,8 +84,8 @@ abstract class IntrospectionUtils {
     }
 
     /**
-     * Find the {@link Field} that corresponds to the annotated member. When the annotated member is a setter or
-     * getter this is used to find the corresponding field definition.
+     * Find the {@link Field} that corresponds to the annotated member. When the annotated member is a setter or getter
+     * this is used to find the corresponding field definition.
      *
      * @param member an annotated member
      *

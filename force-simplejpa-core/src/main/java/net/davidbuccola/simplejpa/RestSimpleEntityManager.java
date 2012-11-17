@@ -42,16 +42,16 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
         objectMapper.setDeserializerProvider(new StdDeserializerProvider(new SubqueryDeserializerFactory()));
         objectMapper.withModule(new MapAsStringModule());
         objectMapper.setSerializationConfig(
-                objectMapper.getSerializationConfig()
-                        .withSerializationInclusion(JsonSerialize.Inclusion.NON_NULL)
-                        .withPropertyNamingStrategy(new EntityPropertyNamingStrategy(true))
-                        .withAnnotationIntrospector(new SimpleJpaAnnotationIntrospector(descriptorProvider)));
+            objectMapper.getSerializationConfig()
+                .withSerializationInclusion(JsonSerialize.Inclusion.NON_NULL)
+                .withPropertyNamingStrategy(new EntityPropertyNamingStrategy(true))
+                .withAnnotationIntrospector(new SimpleJpaAnnotationIntrospector(descriptorProvider)));
         objectMapper.setDeserializationConfig(
-                objectMapper.getDeserializationConfig()
-                        .withPropertyNamingStrategy(new EntityPropertyNamingStrategy(false))
-                        .withAnnotationIntrospector(new SimpleJpaAnnotationIntrospector(descriptorProvider)));
+            objectMapper.getDeserializationConfig()
+                .withPropertyNamingStrategy(new EntityPropertyNamingStrategy(false))
+                .withAnnotationIntrospector(new SimpleJpaAnnotationIntrospector(descriptorProvider)));
         objectMapper.setVisibilityChecker(
-                objectMapper.getVisibilityChecker().withFieldVisibility(JsonAutoDetect.Visibility.ANY));
+            objectMapper.getVisibilityChecker().withFieldVisibility(JsonAutoDetect.Visibility.ANY));
     }
 
     private RestConnector connector;
@@ -150,10 +150,10 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
                 List<T> results = new ArrayList<T>();
                 try {
                     String soql = new SoqlBuilder(descriptor)
-                            .soqlTemplate(soqlTemplate)
-                            .offset(getFirstResult())
-                            .limit(getMaxResults())
-                            .build();
+                        .soqlTemplate(soqlTemplate)
+                        .offset(getFirstResult())
+                        .limit(getMaxResults())
+                        .build();
 
                     if (log.isDebugEnabled())
                         log.debug(String.format("Query: %s", soql));

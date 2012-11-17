@@ -16,7 +16,6 @@ import com.sun.jersey.api.client.UniformInterfaceException;
 
 /**
  * @author davidbuccola
- * @since 178
  */
 @Named
 @Provider

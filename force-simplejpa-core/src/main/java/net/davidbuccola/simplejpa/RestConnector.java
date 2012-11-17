@@ -9,7 +9,7 @@ import java.io.InputStream;
 import java.net.URI;
 
 /**
- * A connector which knows how to issue requests to the Salesforce REST API.
+ * A connector which knows how to issue requests to the Salesforce "data" REST API.
  * <p/>
  * This is a simple internal abstraction that allows different REST libraries to be plugged in. This means libraries
  * like Apache HTTP or Sun's Jersey, or some other library.

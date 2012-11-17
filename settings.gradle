@@ -1,2 +1,3 @@
 include 'force-simplejpa-core'
 include 'force-simplejpa-jaxrs'
+include 'force-simplejpa-spring'

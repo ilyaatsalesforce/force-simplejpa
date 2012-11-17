@@ -178,7 +178,7 @@ class SimpleJpaAnnotationIntrospector extends NopAnnotationIntrospector {
             return new JsonSerializer<Object>() {
                 @Override
                 public void serialize(Object object, JsonGenerator jgen, SerializerProvider provider)
-                        throws IOException {
+                    throws IOException {
                     jgen.writeString(getEntityId(descriptor.getIdProperty(), object));
                 }
             };

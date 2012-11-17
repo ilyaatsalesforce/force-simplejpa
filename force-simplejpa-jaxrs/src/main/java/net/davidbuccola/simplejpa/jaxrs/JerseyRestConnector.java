@@ -13,32 +13,30 @@ import javax.ws.rs.core.MediaType;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
-import net.davidbuccola.simplejpa.EntityRequestException;
-import net.davidbuccola.simplejpa.RestConnector;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 
+import net.davidbuccola.simplejpa.EntityRequestException;
+import net.davidbuccola.simplejpa.RestConnector;
+
 /**
- * A {@link net.davidbuccola.simplejpa.RestConnector} implementation that uses Jersey to connect to Salesforce
- * persistence using the REST API.
+ * A {@link RestConnector} implementation that uses Jersey to connect to Salesforce persistence using the REST API.
  *
  * @author davidbuccola
  */
-final class JerseyRestConnector implements RestConnector {
-    private static final String API_VERSION = "v26.0";
-
+public final class JerseyRestConnector implements RestConnector {
     private WebResource dataResource;
 
-    public JerseyRestConnector(WebResource instanceResource) {
-        this.dataResource = instanceResource.path("services/data/" + API_VERSION);
+    public JerseyRestConnector(WebResource dataResource) {
+        this.dataResource = dataResource;
     }
 
     @Override
     public InputStream doGet(URI uri) {
         try {
             return dataResource.uri(uri)
-                    .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .get(InputStream.class);
+                .accept(MediaType.APPLICATION_JSON_TYPE)
+                .get(InputStream.class);
         } catch (UniformInterfaceException e) {
             throw new EntityRequestException(String.format("Get failed: %s", extractMessage(e)), e);
         }
@@ -48,10 +46,10 @@ final class JerseyRestConnector implements RestConnector {
     public InputStream doCreate(String entityType, byte[] body) {
         try {
             return dataResource.path("sobjects")
-                    .path(entityType)
-                    .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .type(MediaType.APPLICATION_JSON_TYPE)
-                    .post(InputStream.class, body);
+                .path(entityType)
+                .accept(MediaType.APPLICATION_JSON_TYPE)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .post(InputStream.class, body);
         } catch (UniformInterfaceException e) {
             throw new EntityRequestException(String.format("Create failed: %s", extractMessage(e)), e);
         }
@@ -61,9 +59,9 @@ final class JerseyRestConnector implements RestConnector {
     public InputStream doQuery(String soql) {
         try {
             return dataResource.path("query")
-                    .queryParam("q", soql)
-                    .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .get(InputStream.class);
+                .queryParam("q", soql)
+                .accept(MediaType.APPLICATION_JSON_TYPE)
+                .get(InputStream.class);
         } catch (UniformInterfaceException e) {
             throw new EntityRequestException(String.format("Query failed: %s", extractMessage(e)), e);
         }
