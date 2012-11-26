@@ -5,13 +5,14 @@
  */
 package net.davidbuccola.simplejpa.spring;
 
-import javax.inject.Named;
 import javax.ws.rs.core.HttpHeaders;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.stereotype.Component;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
@@ -33,10 +34,10 @@ import net.davidbuccola.simplejpa.jaxrs.JerseyRestConnector;
  *
  * @author dbuccola
  */
-@Named("simpleEntityManagerFactory")
+@Component("simpleEntityManagerFactory")
 @Scope(value = "request", proxyMode = ScopedProxyMode.INTERFACES)
 public class JerseySimpleEntityManagerFactory implements FactoryBean<SimpleEntityManager>, InitializingBean {
-    private static final String DEFAULT_API_VERSION = "v27.0";
+    private static final String DEFAULT_API_VERSION = "v26.0";
 
     /**
      * The following factory configuration is placed in static fields so it is shared by all.
@@ -83,6 +84,7 @@ public class JerseySimpleEntityManagerFactory implements FactoryBean<SimpleEntit
      *
      * @param aClient a client
      */
+    @Autowired
     public void setClient(Client aClient) {
         if (aClient == null) {
             throw new IllegalArgumentException("client is null");
@@ -99,6 +101,7 @@ public class JerseySimpleEntityManagerFactory implements FactoryBean<SimpleEntit
      *
      * @param anAuthorizationConnector an authorization connector
      */
+    @Autowired
     public void setAuthorizationConnector(AuthorizationConnector anAuthorizationConnector) {
         if (anAuthorizationConnector == null) {
             throw new IllegalArgumentException("authorizationConnector is null");
