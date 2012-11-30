@@ -1,3 +1,5 @@
+rootProject.name = 'force-simplejpa'
+
 include 'force-simplejpa-core'
 include 'force-simplejpa-jaxrs'
 include 'force-simplejpa-spring'
