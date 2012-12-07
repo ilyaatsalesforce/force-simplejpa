@@ -33,6 +33,9 @@ configure(subprojects) {
 
     ext.gitHash = rootProject.gitHash  // So we don't execute git command multiple times
 
+    sourceCompatibility=1.6
+    targetCompatibility=1.6
+
     idea {
         module {
             inheritOutputDirs = false
