@@ -21,6 +21,12 @@ configure(rootProject) {
             ipr {
                 withXml { provider ->
                     provider.node.component.find { it.@name == 'VcsDirectoryMappings' }.mapping.@vcs = 'Git'
+
+                    def gradleSettings = node.appendNode('component', [name: 'GradleSettings'])
+                    gradleSettings.appendNode('option', [name: 'SDK_HOME', value: gradle.gradleHomeDir.absolutePath])
+
+                    def javacSettings = node.appendNode('component', [name: 'JavacSettings'])
+                    javacSettings.appendNode('option', [name: 'MAXIMUM_HEAP_SIZE', value: "256"])
                 }
             }
         }
@@ -72,18 +78,22 @@ configure(subprojects) {
         archives javadocJar
     }
 
-    jar {
+    tasks.withType(Compile) {
+        options.encoding = 'UTF-8'
+        options.debug = true
+        options.compilerArgs = [ '-Xlint:-options' ] // Ignore warning about bootclasspath and source compatibility
+    }
+
+    tasks.withType(Jar) {
         manifest {
-            instruction 'Source-Revision', gitHash
+            attributes('Source-Revision': gitHash)
         }
     }
 
     install {
         repositories {
             mavenInstaller {
-                pom.whenConfigured { generatedPom ->
-                    customizePom(generatedPom, project)
-                }
+                pom.whenConfigured { generatedPom -> customizePom(generatedPom, project) }
             }
         }
     }
@@ -109,7 +119,9 @@ configure(subprojects) {
     }
 }
 
-// Add extra items necessary for maven central publication
+/**
+ * Customize the auto-generated pom with additional items necessary for maven central publication.
+ */
 def customizePom(pom, gradleProject) {
     pom.project {
         name = gradleProject.name
@@ -141,7 +153,19 @@ def customizePom(pom, gradleProject) {
     }
 }
 
+//task itest(type:Test) {
+//    testClassesDir = project.sourceSets.intTest.output.classesDir
+//    classpath = project.sourceSets.intTest.runtimeClasspath
+//    maxHeapSize='1024m'
+//    jvmArgs '-XX:MaxPermSize=512M'
+//    ext.maxParallelForks = Runtime.runtime.availableProcessors()
+//}
+
+/**
+ * Generates a new gradle wrapper. You'll want to do this if you change gradle version or if your jvm options change
+ * below.
+ */
 task wrapper(type: Wrapper) {
     description = 'Generates gradlew[.bat] scripts'
-    gradleVersion = project.gradleVersion
+    gradleVersion = project.hasProperty('gradleVersion') ? project.gradleVersion : '1.3'
 }
