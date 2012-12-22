@@ -7,7 +7,6 @@ package com.force.simplejpa;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -15,7 +14,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.Transient;
 
 import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.map.BeanPropertyDefinition;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.map.annotate.JsonCachable;
@@ -179,33 +177,10 @@ class SimpleJpaAnnotationIntrospector extends NopAnnotationIntrospector {
                 @Override
                 public void serialize(Object object, JsonGenerator jgen, SerializerProvider provider)
                     throws IOException {
-                    jgen.writeString(getEntityId(descriptor.getIdProperty(), object));
+                    jgen.writeString(EntityUtils.getEntityId(descriptor, object));
                 }
             };
         }
         return super.findSerializer(annotated);
-    }
-
-    /**
-     * Gets the ID property of an entity instance.
-     *
-     * @param idProperty definition of the idProperty
-     * @param instance   the entity instance from which to get the id
-     *
-     * @return the id
-     */
-    private static String getEntityId(BeanPropertyDefinition idProperty, Object instance) {
-        try {
-            if (idProperty.hasGetter()) {
-                return idProperty.getGetter().getAnnotated().invoke(instance).toString();
-            } else if (idProperty.hasField()) {
-                return idProperty.getField().getAnnotated().get(instance).toString();
-            } else
-                throw new IllegalStateException("There is no way to set the entity id");
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        } catch (InvocationTargetException e) {
-            throw new RuntimeException(e);
-        }
     }
 }

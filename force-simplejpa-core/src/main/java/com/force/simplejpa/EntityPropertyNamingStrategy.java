@@ -20,7 +20,7 @@ import static com.force.simplejpa.IntrospectionUtils.isRelationshipField;
 
 /**
  * A property naming strategy which helps with subtleties of naming objects in Salesforce. The strategy tries to help
- * with the ugliness of namespaces and the "__c" suffix. It also aids with read/write differences with references to
+ * with the ugliness of namespaces and the "__c" suffix. It also aids with read/write differences for references to
  * related objects.
  * <p/>
  * See the descriptions below for more details on the transformations.

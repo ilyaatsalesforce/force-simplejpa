@@ -21,7 +21,7 @@ import org.codehaus.jackson.map.BeanPropertyDefinition;
 
 /**
  * Builder for generating SOQL to retrieve a particular type of entity. The type of entity for which SOQL is desired is
- * specified in the constructor for the builder.
+ * specified in the constructor of the builder.
  * <p/>
  * This builder transforms an SOQL template by performing wildcard substitution and optionally adding pagination
  * information (in the form of LIMIT and OFFSET clauses).

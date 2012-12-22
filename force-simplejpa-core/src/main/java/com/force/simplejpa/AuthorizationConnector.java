@@ -1,5 +1,5 @@
 /*
- * Copyright, 2012, SALESFORCE.com 
+ * Copyright, 2012, SALESFORCE.com
  * All Rights Reserved
  * Company Confidential
  */
@@ -18,7 +18,7 @@ import java.net.URI;
  */
 public interface AuthorizationConnector {
     /**
-     * Retrieves the access token to use for an outbound REST request.
+     * Retrieves the value of the authorization header to use for an outbound REST request.
      *
      * @return a value for the Authorization header
      */
@@ -30,6 +30,4 @@ public interface AuthorizationConnector {
      * @return the instance URL
      */
     URI getInstanceUrl();
-
-    //TODO Need to address token refresh requirements
 }

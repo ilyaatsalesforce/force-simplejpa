@@ -4,15 +4,16 @@ description = 'Simple Entity Manager for Salesforce - Spring components'
 
 dependencies {
     compile project(":force-simplejpa-jaxrs")
-    compile "org.slf4j:slf4j-api:${slf4jVersion}"
-    compile "javax.servlet:javax.servlet-api:${javaxServletVersion}"
-    compile "org.glassfish.hk2.external:javax.inject:${glassfishInjectVersion}"
+    compile "com.google.code.findbugs:annotations:2.0.1"
+    compile "com.sun.jersey:jersey-client:${jerseyVersion}"
     compile "com.sun.jersey:jersey-core:${jerseyVersion}"
     compile "com.sun.jersey:jersey-json:${jerseyVersion}"
-    compile "com.sun.jersey:jersey-client:${jerseyVersion}"
+    compile "javax.servlet:javax.servlet-api:${javaxServletVersion}"
+    compile "org.glassfish.hk2.external:javax.inject:${glassfishInjectVersion}"
     compile "org.springframework:spring-beans:${springVersion}"
     compile "org.springframework:spring-context:${springVersion}"
     compile "org.springframework:spring-web:${springVersion}"
+    compile "org.slf4j:slf4j-api:${slf4jVersion}"
 
     testCompile "junit:junit:${junitVersion}"
 }

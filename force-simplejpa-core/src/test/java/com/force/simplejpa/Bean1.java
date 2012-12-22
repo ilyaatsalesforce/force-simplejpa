@@ -9,7 +9,6 @@ import javax.persistence.Entity;
 
 /**
  * @author davidbuccola
- * @since 178
  */
 @Entity
 public class Bean1 {

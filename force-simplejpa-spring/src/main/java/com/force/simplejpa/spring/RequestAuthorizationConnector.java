@@ -1,5 +1,5 @@
 /*
- * Copyright, 2012, SALESFORCE.com 
+ * Copyright, 2012, SALESFORCE.com
  * All Rights Reserved
  * Company Confidential
  */
@@ -25,7 +25,7 @@ import com.force.simplejpa.AuthorizationConnector;
  *
  * @author davidbuccola
  */
-public class SimpleAuthorizationConnector implements AuthorizationConnector {
+public class RequestAuthorizationConnector implements AuthorizationConnector {
     @Override
     public final String getAuthorization() {
         return getAuthorization(getCurrentRequest());
@@ -52,6 +52,13 @@ public class SimpleAuthorizationConnector implements AuthorizationConnector {
         return ((ServletRequestAttributes) requestAttributes).getRequest();
     }
 
+    /**
+     * Extracts authentication information from the current inbound request.
+     *
+     * @param request the current request
+     *
+     * @return a value for the outbound "Authorization" header
+     */
     protected String getAuthorization(HttpServletRequest request) {
         String authorizationHeader = request.getHeader("Authorization");
         if (authorizationHeader != null) {
@@ -61,6 +68,13 @@ public class SimpleAuthorizationConnector implements AuthorizationConnector {
         }
     }
 
+    /**
+     * Extracts the instance URL from the current inbound request.
+     *
+     * @param request the current request
+     *
+     * @return the instance URL
+     */
     protected URI getInstanceUrl(HttpServletRequest request) {
         String instanceUrlHeader = request.getHeader("Force-Instance-Url");
         if (instanceUrlHeader != null) {

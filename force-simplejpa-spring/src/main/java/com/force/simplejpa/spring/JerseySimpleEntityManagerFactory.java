@@ -1,5 +1,5 @@
 /*
- * Copyright, 2012, SALESFORCE.com 
+ * Copyright, 2012, SALESFORCE.com
  * All Rights Reserved
  * Company Confidential
  */
@@ -15,7 +15,6 @@ import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
 
 import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientRequest;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
@@ -36,6 +35,7 @@ import com.force.simplejpa.jaxrs.JerseyRestConnector;
  */
 @Component("simpleEntityManagerFactory")
 @Scope(value = "request", proxyMode = ScopedProxyMode.INTERFACES)
+@edu.umd.cs.findbugs.annotations.SuppressWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
 public class JerseySimpleEntityManagerFactory implements FactoryBean<SimpleEntityManager>, InitializingBean {
     private static final String DEFAULT_API_VERSION = "v26.0";
 
@@ -52,7 +52,7 @@ public class JerseySimpleEntityManagerFactory implements FactoryBean<SimpleEntit
      */
     private static String apiVersion = DEFAULT_API_VERSION;
     private static Client client = new Client();
-    private static AuthorizationConnector authorizationConnector = new SimpleAuthorizationConnector();
+    private static AuthorizationConnector authorizationConnector = new RequestAuthorizationConnector();
 
     /**
      * A singleton ClientFilter for adding the authorization header. It is a stateless singleton on purpose. If you
@@ -61,7 +61,7 @@ public class JerseySimpleEntityManagerFactory implements FactoryBean<SimpleEntit
      */
     private static final ClientFilter authorizationFilter = new ClientFilter() {
         @Override
-        public ClientResponse handle(ClientRequest clientRequest) throws ClientHandlerException {
+        public ClientResponse handle(ClientRequest clientRequest) {
             clientRequest.getHeaders().add(HttpHeaders.AUTHORIZATION, authorizationConnector.getAuthorization());
             return getNext().handle(clientRequest);
         }

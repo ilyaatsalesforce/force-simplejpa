@@ -13,9 +13,10 @@ import java.util.List;
 
 import javax.persistence.NoResultException;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
-import org.codehaus.jackson.map.BeanPropertyDefinition;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.deser.StdDeserializerProvider;
@@ -56,129 +57,154 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
 
     private RestConnector connector;
 
+    /**
+     * Constructs a new instance with the given {@link RestConnector}.
+     *
+     * @param connector a REST connector
+     */
     public RestSimpleEntityManager(RestConnector connector) {
         this.connector = connector;
     }
 
     @Override
     public void persist(Object entity) {
-        if (entity == null)
-            throw new NullPointerException("entity");
+        Validate.notNull(entity, "entity must not be null");
 
-        EntityDescriptor descriptor = descriptorProvider.get(entity.getClass());
-        if (descriptor == null)
-            throw new IllegalArgumentException("entity can't be used as an entity");
+        EntityDescriptor descriptor = getRequiredEntityDescriptor(entity.getClass());
+        if (descriptor.hasIdMember() && StringUtils.isNotEmpty(EntityUtils.getEntityId(descriptor, entity))) {
+            throw new EntityRequestException("Id value should not exist for new object creation");
+        }
 
+        String json = convertEntityToJson(entity);
+        optionallyLogRequest("Persist", descriptor.getName(), null, json);
+        InputStream responseStream = connector.doCreate(descriptor.getName(), json);
+        JsonNode responseNode = parseJsonResponse(responseStream);
+        if (!responseNode.has("success") || !responseNode.has("id")) {
+            throw new EntityResponseException("JSON response is missing expected fields");
+        }
+        if (!responseNode.get("success").getBooleanValue()) {
+            throw new EntityResponseException(getErrorsText(responseNode));
+        }
+        String id = responseNode.get("id").getTextValue();
+        if (descriptor.hasIdMember()) {
+            EntityUtils.setEntityId(descriptor, entity, id);
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("...Created %s %s", descriptor.getName(), id));
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T merge(T entity) {
+        Validate.notNull(entity, "entity must not be null");
+
+        EntityDescriptor descriptor = getRequiredEntityDescriptor(entity.getClass());
+        String id = getRequiredId(descriptor, entity);
+        EntityUtils.setEntityId(descriptor, entity, null); // Salesforce REST doesn't want ID present
         try {
-            if (descriptor.hasIdMember())
-                setEntityId(descriptor.getIdProperty(), entity, null);
-
-            byte[] jsonBytes = objectMapper.writeValueAsBytes(entity);
-
-            if (log.isDebugEnabled())
-                log.debug(String.format("Create: %s: %s", descriptor.getName(), new String(jsonBytes, "UTF-8")));
-
-            InputStream responseStream = connector.doCreate(descriptor.getName(), jsonBytes);
-            JsonNode responseNode = objectMapper.readTree(responseStream);
-            if (!responseNode.has("success") || !responseNode.has("id"))
-                throw new EntityResponseException("JSON database response is missing expected fields");
-
-            if (!responseNode.get("success").getBooleanValue())
-                throw new EntityResponseException(getErrorsText(responseNode));
-
-            if (descriptor.hasIdMember()) {
-                String id = responseNode.get("id").getTextValue();
-                setEntityId(descriptor.getIdProperty(), entity, id);
-            }
-        } catch (IOException e) {
-            throw new EntityResponseException("Failed to parse JSON database response", e);
+            String json = convertEntityToJson(entity);
+            optionallyLogRequest("Merge", descriptor.getName(), id, json);
+            connector.doUpdate(descriptor.getName(), id, json);
+            return find(descriptor, (Class<T>) entity.getClass(), id);
+        } finally {
+            EntityUtils.setEntityId(descriptor, entity, id); // Restore ID value. Yuk, but don't blame me :-)
         }
     }
 
     @Override
-    public <T> T merge(T entity) {
-        if (entity == null)
-            throw new NullPointerException("entity");
-
-        throw new UnsupportedOperationException("Not implemented yet");
-    }
-
-    @Override
     public void remove(Object entity) {
-        if (entity == null)
-            throw new NullPointerException("entity");
+        Validate.notNull(entity, "entity must not be null");
 
-        throw new UnsupportedOperationException("Not implemented yet");
+        EntityDescriptor descriptor = getRequiredEntityDescriptor(entity.getClass());
+        String id = getRequiredId(descriptor, entity);
+        optionallyLogRequest("Remove", descriptor.getName(), id, null);
+        connector.doDelete(descriptor.getName(), id);
+
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("...Deleted %s %s", descriptor.getName(), id));
+        }
     }
 
     @Override
     public <T> T find(Class<T> entityClass, Object primaryKey) {
-        if (entityClass == null)
-            throw new NullPointerException("entityClass");
+        Validate.notNull(entityClass, "entityClass must not be null");
+        Validate.notNull(primaryKey, "primaryKey must not be null");
 
-        if (primaryKey == null)
-            throw new NullPointerException("primaryKey");
+        EntityDescriptor descriptor = getRequiredEntityDescriptor(entityClass);
+        optionallyLogRequest("Find", descriptor.getName(), primaryKey.toString(), null);
+        return find(descriptor, entityClass, primaryKey);
+    }
 
-        EntityDescriptor descriptor = descriptorProvider.get(entityClass);
-        if (descriptor == null)
-            throw new IllegalArgumentException("entityClass can't be used as an entity");
-
+    private <T> T find(EntityDescriptor descriptor, Class<T> entityClass, Object primaryKey) {
         String soqlTemplate = String.format("SELECT * FROM %s WHERE Id = '%s'", descriptor.getName(), primaryKey);
         try {
-            return createQuery(soqlTemplate, entityClass).setMaxResults(1).getSingleResult();
+            return createQuery(descriptor, soqlTemplate, entityClass).setMaxResults(1).getSingleResult();
         } catch (NoResultException e) {
             return null;
         }
     }
 
     @Override
-    public final <T> SimpleTypedQuery<T> createQuery(final String soqlTemplate, final Class<T> entityClass) {
+    public <T> SimpleTypedQuery<T> createQuery(final String soqlTemplate, final Class<T> entityClass) {
+        Validate.notNull(soqlTemplate, "soqlTemplate must not be null");
+        Validate.notNull(entityClass, "entityClass must not be null");
 
-        if (soqlTemplate == null)
-            throw new NullPointerException("soqlTemplate");
+        final EntityDescriptor descriptor = getRequiredEntityDescriptor(entityClass);
+        optionallyLogRequest("CreateQuery", descriptor.getName(), null, soqlTemplate);
+        return createQuery(descriptor, soqlTemplate, entityClass);
+    }
 
-        if (entityClass == null)
-            throw new NullPointerException("entityClass");
+    private <T> SimpleTypedQuery<T> createQuery(final EntityDescriptor descriptor, final String soqlTemplate, final Class<T> entityClass) {
+        return new RestSimpleTypedQuery<T>(descriptor, soqlTemplate, entityClass);
+    }
 
-        final EntityDescriptor descriptor = descriptorProvider.get(entityClass);
-        if (descriptor == null)
-            throw new IllegalArgumentException("entityClass can't be used as an entity");
+    private EntityDescriptor getRequiredEntityDescriptor(Class<?> clazz) {
+        EntityDescriptor descriptor = descriptorProvider.get(clazz);
+        if (descriptor == null) {
+            throw new IllegalArgumentException(
+                String.format("%s can't be used as an entity, probably because it isn't annotated", clazz.getName()));
+        }
+        return descriptor;
+    }
 
-        return new AbstractSimpleTypedQuery<T>() {
-            @Override
-            public List<T> getResultList() {
-                List<T> results = new ArrayList<T>();
-                try {
-                    String soql = new SoqlBuilder(descriptor)
-                        .soqlTemplate(soqlTemplate)
-                        .offset(getFirstResult())
-                        .limit(getMaxResults())
-                        .build();
-
-                    if (log.isDebugEnabled())
-                        log.debug(String.format("Query: %s", soql));
-
-                    // Issue the query and parse the first batch of results.
-                    InputStream responseStream = connector.doQuery(soql);
-                    JsonNode rootNode = objectMapper.readTree(responseStream);
-                    for (JsonNode node : rootNode.get("records")) {
-                        results.add(objectMapper.readValue(node, entityClass));
-                    }
-
-                    // Request additional results if they exist
-                    while (rootNode.get("nextRecordsUrl") != null) {
-                        responseStream = connector.doGet(URI.create(rootNode.get("nextRecordsUrl").getTextValue()));
-                        rootNode = objectMapper.readTree(responseStream);
-                        for (JsonNode node : rootNode.get("records")) {
-                            results.add(objectMapper.readValue(node, entityClass));
-                        }
-                    }
-                } catch (IOException e) {
-                    throw new EntityResponseException("Failed to parse the 'query' result", e);
-                }
-                return results;
+    private static String getRequiredId(EntityDescriptor descriptor, Object entity) {
+        if (descriptor.hasIdMember()) {
+            String id = EntityUtils.getEntityId(descriptor.getIdProperty(), entity);
+            if (StringUtils.isEmpty(id)) {
+                throw new EntityRequestException("Entity instance does not have an id value set");
             }
-        };
+            return id;
+        } else {
+            throw new EntityRequestException("Entity class is not annotated with an Id member");
+        }
+    }
+
+    private String convertEntityToJson(Object entity) {
+        try {
+            return objectMapper.writeValueAsString(entity);
+        } catch (IOException e) {
+            throw new EntityResponseException("Failed to encode entity as JSON", e);
+        }
+    }
+
+    private JsonNode parseJsonResponse(InputStream inputStream) {
+        try {
+            return objectMapper.readTree(inputStream);
+        } catch (IOException e) {
+            throw new EntityResponseException("Failed to parse JSON response stream", e);
+        }
+    }
+
+    private static void optionallyLogRequest(String operation, String entityTypeName, String id, String detail) {
+        if (log.isDebugEnabled()) {
+            if (id != null) {
+                log.debug(String.format("%s %s %s: %s", operation, entityTypeName, id, StringUtils.trimToEmpty(detail)));
+            } else {
+                log.debug(String.format("%s %s: %s", operation, entityTypeName, StringUtils.trimToNull(detail)));
+            }
+        }
     }
 
     private static String getErrorsText(JsonNode node) {
@@ -195,19 +221,57 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
         return "database error with no error message";
     }
 
-    /**
-     * Sets the ID property of an entity instance.
-     *
-     * @param idProperty definition of the idProperty
-     * @param instance   the entity instance on which to set the id
-     * @param value      the id
-     */
-    private static void setEntityId(BeanPropertyDefinition idProperty, Object instance, String value) {
-        if (idProperty.hasSetter())
-            idProperty.getSetter().setValue(instance, value);
-        else if (idProperty.hasField())
-            idProperty.getField().setValue(instance, value);
-        else
-            throw new IllegalStateException("There is no way to set the entity id");
+    private final class RestSimpleTypedQuery<T> extends AbstractSimpleTypedQuery<T> {
+        private EntityDescriptor descriptor;
+        private Class<T> entityClass;
+        private String soqlTemplate;
+
+        private RestSimpleTypedQuery(EntityDescriptor descriptor, String soqlTemplate, Class<T> entityClass) {
+            this.descriptor = descriptor;
+            this.entityClass = entityClass;
+            this.soqlTemplate = soqlTemplate;
+        }
+
+        @Override
+        public List<T> getResultList() {
+            List<T> results = new ArrayList<T>();
+            try {
+                String soql = new SoqlBuilder(descriptor)
+                    .soqlTemplate(soqlTemplate)
+                    .offset(getFirstResult())
+                    .limit(getMaxResults())
+                    .build();
+
+                if (log.isDebugEnabled())
+                    log.debug(String.format("...Query: %s", soql));
+
+                // Issue the query and parse the first batch of results.
+                InputStream responseStream = connector.doQuery(soql);
+                JsonNode rootNode = objectMapper.readTree(responseStream);
+                for (JsonNode node : rootNode.get("records")) {
+                    T resultObject = objectMapper.readValue(node, entityClass);
+                    if (log.isDebugEnabled()) {
+                        log.debug(String.format("...Result Row: %s", convertEntityToJson(resultObject)));
+                    }
+                    results.add(resultObject);
+                }
+
+                // Request additional results if they exist
+                while (rootNode.get("nextRecordsUrl") != null) {
+                    responseStream = connector.doGet(URI.create(rootNode.get("nextRecordsUrl").getTextValue()));
+                    rootNode = objectMapper.readTree(responseStream);
+                    for (JsonNode node : rootNode.get("records")) {
+                        T resultObject = objectMapper.readValue(node, entityClass);
+                        if (log.isDebugEnabled()) {
+                            log.debug(String.format("...Result Row: %s", convertEntityToJson(resultObject)));
+                        }
+                        results.add(resultObject);
+                    }
+                }
+            } catch (IOException e) {
+                throw new EntityResponseException("Failed to parse the 'query' result", e);
+            }
+            return results;
+        }
     }
 }

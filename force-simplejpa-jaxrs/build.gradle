@@ -4,6 +4,7 @@ description = 'Simple Entity Manager for Salesforce - JAX-RS components'
 
 dependencies {
     compile project(":force-simplejpa-core")
+    compile "com.sun.jersey.contribs:jersey-apache-client4:${jerseyVersion}"
     compile "com.sun.jersey:jersey-core:${jerseyVersion}"
     compile "com.sun.jersey:jersey-json:${jerseyVersion}"
     compile "com.sun.jersey:jersey-client:${jerseyVersion}"

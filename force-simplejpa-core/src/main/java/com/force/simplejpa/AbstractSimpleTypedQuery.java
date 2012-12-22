@@ -11,6 +11,11 @@ import javax.persistence.NoResultException;
 import javax.persistence.NonUniqueResultException;
 
 /**
+ * An abstract implementation of {@link SimpleTypedQuery} that handles most of the standard stuff so that derived
+ * classes just need to worry about implementing {@link com.force.simplejpa.SimpleTypedQuery#getResultList()}.
+ *
+ * @param <T> the class of returned values
+ *
  * @author davidbuccola
  */
 abstract class AbstractSimpleTypedQuery<T> implements SimpleTypedQuery<T> {
@@ -23,8 +28,7 @@ abstract class AbstractSimpleTypedQuery<T> implements SimpleTypedQuery<T> {
         return this;
     }
 
-    @Override
-    public int getMaxResults() {
+    protected int getMaxResults() {
         return maxResults;
     }
 
@@ -34,8 +38,7 @@ abstract class AbstractSimpleTypedQuery<T> implements SimpleTypedQuery<T> {
         return this;
     }
 
-    @Override
-    public int getFirstResult() {
+    protected int getFirstResult() {
         return startPosition;
     }
 

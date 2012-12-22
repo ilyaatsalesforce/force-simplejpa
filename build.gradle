@@ -12,8 +12,6 @@ configure(allprojects) {
 }
 
 configure(rootProject) {
-    description = 'Simple Entity Manager for Salesforce'
-
     ext.gitHash = 'git log -1 --format=%H'.execute().text.trim()
 
     idea {
@@ -39,27 +37,14 @@ configure(subprojects) {
 
     ext.gitHash = rootProject.gitHash  // So we don't execute git command multiple times
 
-    sourceCompatibility=1.6
-    targetCompatibility=1.6
+    sourceCompatibility = 1.6
+    targetCompatibility = 1.6
 
     idea {
         module {
             inheritOutputDirs = false
             outputDir = file("${project.buildDir}/classes/main")
             testOutputDir = file("${project.buildDir}/classes/test")
-        }
-    }
-
-    if (System.getProperty("strict") != null) {
-        apply plugin: 'checkstyle'
-        apply plugin: 'findbugs'
-
-        checkstyle {
-            configFile = file("$rootProject.projectDir/config/checkstyle/checkstyle.xml")
-        }
-
-        tasks.withType(FindBugs) {
-            excludeFilter = file("$rootProject.projectDir/config/findbugs/excludeFilter.xml")
         }
     }
 
@@ -79,15 +64,20 @@ configure(subprojects) {
     }
 
     tasks.withType(Compile) {
-        options.encoding = 'UTF-8'
         options.debug = true
-        options.compilerArgs = [ '-Xlint:-options' ] // Ignore warning about bootclasspath and source compatibility
+        options.encoding = 'UTF-8'
+        options.compilerArgs = ['-Xlint:-options'] // Ignore warning about bootclasspath and source compatibility for now
     }
 
     tasks.withType(Jar) {
         manifest {
             attributes('Source-Revision': gitHash)
         }
+    }
+
+    tasks.withType(Test) {
+        maxParallelForks = Runtime.runtime.availableProcessors() / 2
+        jvmArgs '-Xmx512m', '-XX:MaxPermSize=256m', '-XX:+HeapDumpOnOutOfMemoryError'
     }
 
     install {
@@ -116,6 +106,59 @@ configure(subprojects) {
                 }
             }
         }
+    }
+
+    if (file("src/itest").exists()) {
+        sourceSets {
+            itest {
+                compileClasspath += main.output + test.output
+                runtimeClasspath += main.output + test.output
+            }
+        }
+
+        configurations {
+            itestCompile.extendsFrom testCompile
+            itestRuntime.extendsFrom testRuntime
+        }
+
+        task itest(type: Test) {
+            classpath = sourceSets.itest.runtimeClasspath
+            testClassesDir = sourceSets.itest.output.classesDir
+            testResultsDir = file("${project.testResultsDir}/$name")
+        }
+
+        idea {
+            module {
+                testSourceDirs += sourceSets.itest.java.srcDirs
+                testSourceDirs += sourceSets.itest.resources.srcDirs
+                scopes.TEST.plus.add(configurations.itestCompile)
+                scopes.TEST.plus.add(configurations.itestRuntime)
+            }
+        }
+
+        eclipse {
+            classpath {
+                plusConfigurations.add(configurations.itestCompile)
+                plusConfigurations.add(configurations.itestRuntime)
+            }
+        }
+    }
+
+    if (System.getProperty("strict") != null) {
+        apply plugin: 'checkstyle'
+        apply plugin: 'findbugs'
+
+        checkstyle {
+            configFile = file("$rootProject.projectDir/config/checkstyle/checkstyle.xml")
+        }
+
+        tasks.withType(FindBugs) {
+            excludeFilter = file("$rootProject.projectDir/config/findbugs/excludeFilter.xml")
+        }
+    }
+
+    configurations {
+        runtime.exclude group: 'com.google.code.findbugs'  // // Never include findbugs annotations at runtime
     }
 }
 
@@ -152,14 +195,6 @@ def customizePom(pom, gradleProject) {
         }
     }
 }
-
-//task itest(type:Test) {
-//    testClassesDir = project.sourceSets.intTest.output.classesDir
-//    classpath = project.sourceSets.intTest.runtimeClasspath
-//    maxHeapSize='1024m'
-//    jvmArgs '-XX:MaxPermSize=512M'
-//    ext.maxParallelForks = Runtime.runtime.availableProcessors()
-//}
 
 /**
  * Generates a new gradle wrapper. You'll want to do this if you change gradle version or if your jvm options change

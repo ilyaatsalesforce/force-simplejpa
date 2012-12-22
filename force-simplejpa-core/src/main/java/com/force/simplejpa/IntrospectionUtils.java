@@ -24,7 +24,7 @@ import org.codehaus.jackson.map.introspect.AnnotatedMember;
  *
  * @author davidbuccola
  */
-abstract class IntrospectionUtils {
+public final class IntrospectionUtils {
     private static final Set<String> STANDARD_FIELD_NAMES = Collections.unmodifiableSet(
         new HashSet<String>(Arrays.asList(
             "Id", "Name", "CreatedBy", "CreatedDate", "LastModifiedBy", "LastModifiedDate", "Owner",

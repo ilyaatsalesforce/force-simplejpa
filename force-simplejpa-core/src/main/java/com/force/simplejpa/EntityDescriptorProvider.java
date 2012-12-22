@@ -32,7 +32,7 @@ final class EntityDescriptorProvider {
     private final Map<Class<?>, EntityDescriptor> incompleteDescriptors = new HashMap<Class<?>, EntityDescriptor>();
 
     /**
-     * Constructs a new instance.
+     * Constructs a new provider instance.
      *
      * @param objectMapper the object mapper which helps to obtain entity details when a new entity descriptor needs to
      *                     be built. We don't ask the mapper to do any serialization or deserialization but just
