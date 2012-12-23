@@ -3,7 +3,7 @@
  * All Rights Reserved
  * Company Confidential
  */
-package com.force.simplejpa.jaxrs;
+package com.force.simplejpa.jersey;
 
 import javax.ws.rs.core.HttpHeaders;
 

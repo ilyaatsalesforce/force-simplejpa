@@ -1,6 +1,6 @@
 apply plugin: 'java'
 
-description = 'Simple Entity Manager for Salesforce - JAX-RS components'
+description = 'Simple Entity Manager for Salesforce - Jersey components'
 
 dependencies {
     compile project(":force-simplejpa-core")

@@ -3,7 +3,7 @@ apply plugin: 'java'
 description = 'Simple Entity Manager for Salesforce - Spring components'
 
 dependencies {
-    compile project(":force-simplejpa-jaxrs")
+    compile project(":force-simplejpa-jersey")
     compile "com.google.code.findbugs:annotations:2.0.1"
     compile "com.sun.jersey:jersey-client:${jerseyVersion}"
     compile "com.sun.jersey:jersey-core:${jerseyVersion}"

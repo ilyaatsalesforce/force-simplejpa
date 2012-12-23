@@ -23,7 +23,7 @@ import com.sun.jersey.api.client.filter.ClientFilter;
 import com.force.simplejpa.AuthorizationConnector;
 import com.force.simplejpa.RestSimpleEntityManager;
 import com.force.simplejpa.SimpleEntityManager;
-import com.force.simplejpa.jaxrs.JerseyRestConnector;
+import com.force.simplejpa.jersey.JerseyRestConnector;
 
 /**
  * A Spring-based factory for request-scoped instances of {@link SimpleEntityManager} that use a {@link
