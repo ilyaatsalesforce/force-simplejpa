@@ -1,3 +1,2 @@
 include 'force-simplejpa-core'
 include 'force-simplejpa-jersey'
-include 'force-simplejpa-spring'

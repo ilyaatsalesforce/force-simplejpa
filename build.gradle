@@ -157,9 +157,9 @@ configure(subprojects) {
         }
     }
 
-    configurations {
-        runtime.exclude group: 'com.google.code.findbugs'  // // Never include findbugs annotations at runtime
-    }
+    // Support for 'provided' dependencies in generated poms
+    ext.providedDependencies = []
+    ext.provided = { providedDependencies << it }
 }
 
 /**
@@ -192,6 +192,11 @@ def customizePom(pom, gradleProject) {
                 url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
                 distribution 'repo'
             }
+        }
+
+        // Respect 'provided' dependencies
+        gradleProject.providedDependencies.each { dep ->
+            pom.dependencies.find { it.artifactId == dep.name }?.scope = 'provided'
         }
     }
 }

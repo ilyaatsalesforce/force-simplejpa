@@ -24,7 +24,7 @@ import com.sun.jersey.client.apache4.ApacheHttpClient4;
  * @author dbuccola
  */
 public class SimpleEntityManagerFactory {
-    private static final String DEFAULT_API_VERSION = "v26.0";
+    public static final String DEFAULT_API_VERSION = "v26.0";
 
     private final String apiVersion;
     private final Client client;
@@ -34,7 +34,7 @@ public class SimpleEntityManagerFactory {
      * Constructs a new factory with a default {@link Client} and a default {@link AuthorizationConnector} that uses an
      * OAuth username-password flow with credential information retrieved from the environment.
      * <p/>
-     * A default Salesforce API     * version is used (currently v26.0).
+     * A default Salesforce API version is used (currently v26.0).
      * <p/>
      * This form is likely not very useful in production environments because of the limited authorization support but
      * can be useful for integration tests.

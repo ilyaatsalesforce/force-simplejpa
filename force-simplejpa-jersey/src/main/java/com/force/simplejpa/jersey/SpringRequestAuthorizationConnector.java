@@ -3,7 +3,7 @@
  * All Rights Reserved
  * Company Confidential
  */
-package com.force.simplejpa.spring;
+package com.force.simplejpa.jersey;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -18,14 +18,14 @@ import com.force.simplejpa.AuthorizationConnector;
 
 /**
  * An implementation of {@link AuthorizationConnector} which looks for the authorization information and instance
- * information in the headers of the currently active inbound request.
+ * information in the headers of the currently active inbound Spring HTTP request.
  * <p/>
  * The authorization header of the currently active inbound request is propagated to the outbound REST request. The
  * instance url information is expected in a header of name "Force-Instance-Url".
  *
  * @author davidbuccola
  */
-public class RequestAuthorizationConnector implements AuthorizationConnector {
+public class SpringRequestAuthorizationConnector implements AuthorizationConnector {
     @Override
     public final String getAuthorization() {
         return getAuthorization(getCurrentRequest());
@@ -44,7 +44,8 @@ public class RequestAuthorizationConnector implements AuthorizationConnector {
     protected final HttpServletRequest getCurrentRequest() {
         RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
         if (requestAttributes == null) {
-            throw new IllegalStateException("No Spring RequestAttributes are available");
+            throw new IllegalStateException(
+                "No Spring RequestAttributes are available. There's probably no active Spring web request");
         }
         if (!(requestAttributes instanceof ServletRequestAttributes)) {
             throw new IllegalStateException("Spring RequestAttributes are not of type ServletRequestAttributes");

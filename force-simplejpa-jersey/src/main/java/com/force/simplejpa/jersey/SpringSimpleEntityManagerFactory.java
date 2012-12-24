@@ -3,7 +3,7 @@
  * All Rights Reserved
  * Company Confidential
  */
-package com.force.simplejpa.spring;
+package com.force.simplejpa.jersey;
 
 import javax.ws.rs.core.HttpHeaders;
 
@@ -23,7 +23,7 @@ import com.sun.jersey.api.client.filter.ClientFilter;
 import com.force.simplejpa.AuthorizationConnector;
 import com.force.simplejpa.RestSimpleEntityManager;
 import com.force.simplejpa.SimpleEntityManager;
-import com.force.simplejpa.jersey.JerseyRestConnector;
+import com.sun.jersey.client.apache4.ApacheHttpClient4;
 
 /**
  * A Spring-based factory for request-scoped instances of {@link SimpleEntityManager} that use a {@link
@@ -36,9 +36,7 @@ import com.force.simplejpa.jersey.JerseyRestConnector;
 @Component("simpleEntityManagerFactory")
 @Scope(value = "request", proxyMode = ScopedProxyMode.INTERFACES)
 @edu.umd.cs.findbugs.annotations.SuppressWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
-public class JerseySimpleEntityManagerFactory implements FactoryBean<SimpleEntityManager>, InitializingBean {
-    private static final String DEFAULT_API_VERSION = "v26.0";
-
+public class SpringSimpleEntityManagerFactory implements FactoryBean<SimpleEntityManager>, InitializingBean {
     /**
      * The following factory configuration is placed in static fields so it is shared by all.
      * <p/>
@@ -50,9 +48,9 @@ public class JerseySimpleEntityManagerFactory implements FactoryBean<SimpleEntit
      * the application is not careful they can do things that are really inefficient if the factory configuration was to
      * be request-scoped.
      */
-    private static String apiVersion = DEFAULT_API_VERSION;
-    private static Client client = new Client();
-    private static AuthorizationConnector authorizationConnector = new RequestAuthorizationConnector();
+    private static String apiVersion = SimpleEntityManagerFactory.DEFAULT_API_VERSION;
+    private static Client client = ApacheHttpClient4.create();
+    private static AuthorizationConnector authorizationConnector = new SpringRequestAuthorizationConnector();
 
     /**
      * A singleton ClientFilter for adding the authorization header. It is a stateless singleton on purpose. If you
