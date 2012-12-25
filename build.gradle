@@ -149,10 +149,12 @@ configure(subprojects) {
         apply plugin: 'findbugs'
 
         checkstyle {
+            sourceSets = [sourceSets.main]
             configFile = file("$rootProject.projectDir/config/checkstyle/checkstyle.xml")
         }
 
-        tasks.withType(FindBugs) {
+        findbugs {
+            sourceSets = [sourceSets.main]
             excludeFilter = file("$rootProject.projectDir/config/findbugs/excludeFilter.xml")
         }
     }

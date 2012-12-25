@@ -24,7 +24,10 @@ import com.sun.jersey.client.apache4.ApacheHttpClient4;
  * @author dbuccola
  */
 public class SimpleEntityManagerFactory {
-    public static final String DEFAULT_API_VERSION = "v26.0";
+    /**
+     * Default Salesforce API version.
+     */
+    protected static final String DEFAULT_API_VERSION = "v26.0";
 
     private final String apiVersion;
     private final Client client;
