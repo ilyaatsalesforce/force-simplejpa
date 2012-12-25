@@ -5,24 +5,41 @@
  */
 package com.force.simplejpa.jersey;
 
+import com.force.simplejpa.SimpleEntityManager;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.force.simplejpa.SimpleEntityManager;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author dbuccola
  */
 public class SimpleEntityManagerIntegrationTest {
     private SimpleEntityManagerFactory emFactory = new SimpleEntityManagerFactory();
+    private Set<Object> objects = new HashSet<Object>();
+
+    @After
+    public void deleteTestObjects() {
+        SimpleEntityManager em = emFactory.newInstance();
+        for (Object object : objects) {
+            try {
+                em.remove(object);
+            } catch (Exception e) {
+                System.err.println("Failed to clean up object: " + e.toString());
+            }
+        }
+    }
 
     @Test
     public void testPersistAndFind() {
         SimpleEntityManager em = emFactory.newInstance();
         Contact contact = new Contact();
-        contact.setFirstName("Miguel");
-        contact.setLastName("Indurain");
+        contact.setFirstName("John");
+        contact.setLastName("Smith");
         em.persist(contact);
+        objects.add(contact);
 
         Contact contact2 = em.find(Contact.class, contact.getId());
         Assert.assertEquals(contact.getId(), contact2.getId());
@@ -32,11 +49,12 @@ public class SimpleEntityManagerIntegrationTest {
     public void testMerge() {
         SimpleEntityManager em = emFactory.newInstance();
         Contact contact = new Contact();
-        contact.setFirstName("Miguel");
-        contact.setLastName("Indurain");
+        contact.setFirstName("John");
+        contact.setLastName("Smith");
         em.persist(contact);
+        objects.add(contact);
 
-        contact.setEmail("miguel.indurain@tdf.org");
+        contact.setEmail("john.smith@acme.com");
         em.merge(contact);
 
         Contact contact2 = new Contact();
@@ -56,14 +74,16 @@ public class SimpleEntityManagerIntegrationTest {
     public void testRemove() {
         SimpleEntityManager em = emFactory.newInstance();
         Contact contact = new Contact();
-        contact.setFirstName("Miguel");
-        contact.setLastName("Indurain");
+        contact.setFirstName("John");
+        contact.setLastName("Smith");
         em.persist(contact);
+        objects.add(contact);
 
         Contact contact2 = em.find(Contact.class, contact.getId());
         Assert.assertEquals(contact.getId(), contact2.getId());
 
         em.remove(contact);
+        objects.remove(contact);
 
         Contact contact3 = em.find(Contact.class, contact.getId());
         Assert.assertNull(contact3);
