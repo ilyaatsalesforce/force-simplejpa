@@ -7,6 +7,7 @@ package com.force.simplejpa.jersey;
 
 import javax.ws.rs.core.HttpHeaders;
 
+import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,15 +15,12 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
 
+import com.force.simplejpa.AuthorizationConnector;
+import com.force.simplejpa.SimpleEntityManager;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientRequest;
 import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.filter.ClientFilter;
-
-import com.force.simplejpa.AuthorizationConnector;
-import com.force.simplejpa.RestSimpleEntityManager;
-import com.force.simplejpa.SimpleEntityManager;
 import com.sun.jersey.client.apache4.ApacheHttpClient4;
 
 /**
@@ -48,7 +46,7 @@ public class SpringSimpleEntityManagerFactory implements FactoryBean<SimpleEntit
      * the application is not careful they can do things that are really inefficient if the factory configuration was to
      * be request-scoped.
      */
-    private static String apiVersion = SimpleEntityManagerFactory.DEFAULT_API_VERSION;
+    private static String apiVersion = null;
     private static Client client = ApacheHttpClient4.create();
     private static AuthorizationConnector authorizationConnector = new SpringRequestAuthorizationConnector();
 
@@ -84,9 +82,8 @@ public class SpringSimpleEntityManagerFactory implements FactoryBean<SimpleEntit
      */
     @Autowired(required = false)
     public void setClient(Client aClient) {
-        if (aClient == null) {
-            throw new IllegalArgumentException("client is null");
-        }
+        Validate.notNull(authorizationConnector, "client must not be null");
+
         client = aClient;
     }
 
@@ -101,9 +98,8 @@ public class SpringSimpleEntityManagerFactory implements FactoryBean<SimpleEntit
      */
     @Autowired(required = false)
     public void setAuthorizationConnector(AuthorizationConnector anAuthorizationConnector) {
-        if (anAuthorizationConnector == null) {
-            throw new IllegalArgumentException("authorizationConnector is null");
-        }
+        Validate.notNull(authorizationConnector, "authorizationConnector must not be null");
+
         authorizationConnector = anAuthorizationConnector;
     }
 
@@ -116,9 +112,7 @@ public class SpringSimpleEntityManagerFactory implements FactoryBean<SimpleEntit
 
     @Override
     public SimpleEntityManager getObject() {
-        WebResource instanceResource = client.resource(authorizationConnector.getInstanceUrl());
-        WebResource dataResource = instanceResource.path("services/data/" + apiVersion);
-        return new RestSimpleEntityManager(new JerseyRestConnector(dataResource));
+        return SimpleEntityManagerFactoryUtils.newInstance(client, authorizationConnector, apiVersion);
     }
 
     @Override

@@ -7,13 +7,13 @@ package com.force.simplejpa.jersey;
 
 import javax.ws.rs.core.HttpHeaders;
 
+import org.apache.commons.lang.Validate;
+
 import com.force.simplejpa.AuthorizationConnector;
-import com.force.simplejpa.RestSimpleEntityManager;
 import com.force.simplejpa.SimpleEntityManager;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientRequest;
 import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.filter.ClientFilter;
 import com.sun.jersey.client.apache4.ApacheHttpClient4;
 
@@ -24,11 +24,6 @@ import com.sun.jersey.client.apache4.ApacheHttpClient4;
  * @author dbuccola
  */
 public class SimpleEntityManagerFactory {
-    /**
-     * Default Salesforce API version.
-     */
-    protected static final String DEFAULT_API_VERSION = "v26.0";
-
     private final String apiVersion;
     private final Client client;
     private final AuthorizationConnector authorizationConnector;
@@ -77,7 +72,7 @@ public class SimpleEntityManagerFactory {
      * @param authorizationConnector an authorization connector
      */
     public SimpleEntityManagerFactory(Client client, AuthorizationConnector authorizationConnector) {
-        this(client, authorizationConnector, DEFAULT_API_VERSION);
+        this(client, authorizationConnector, null);
     }
 
     /**
@@ -92,15 +87,8 @@ public class SimpleEntityManagerFactory {
      * @param apiVersion             the desired Salesforce API version
      */
     public SimpleEntityManagerFactory(final Client client, final AuthorizationConnector authorizationConnector, String apiVersion) {
-        if (client == null) {
-            throw new IllegalArgumentException("client is null");
-        }
-        if (authorizationConnector == null) {
-            throw new IllegalArgumentException("authorizationConnector is null");
-        }
-        if (apiVersion == null) {
-            throw new IllegalArgumentException("apiVersion is null");
-        }
+        Validate.notNull(client, "client must not be null");
+        Validate.notNull(authorizationConnector, "authorizationConnector must not be null");
 
         this.client = client;
         this.authorizationConnector = authorizationConnector;
@@ -121,8 +109,6 @@ public class SimpleEntityManagerFactory {
      * @return a SimpleEntityManager
      */
     public SimpleEntityManager newInstance() {
-        WebResource instanceResource = client.resource(authorizationConnector.getInstanceUrl());
-        WebResource dataResource = instanceResource.path("services/data/" + apiVersion);
-        return new RestSimpleEntityManager(new JerseyRestConnector(dataResource));
+        return SimpleEntityManagerFactoryUtils.newInstance(client, authorizationConnector, apiVersion);
     }
 }
