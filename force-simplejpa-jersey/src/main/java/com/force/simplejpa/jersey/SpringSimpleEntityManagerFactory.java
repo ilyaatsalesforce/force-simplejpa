@@ -82,7 +82,7 @@ public class SpringSimpleEntityManagerFactory implements FactoryBean<SimpleEntit
      *
      * @param aClient a client
      */
-    @Autowired
+    @Autowired(required = false)
     public void setClient(Client aClient) {
         if (aClient == null) {
             throw new IllegalArgumentException("client is null");
@@ -99,7 +99,7 @@ public class SpringSimpleEntityManagerFactory implements FactoryBean<SimpleEntit
      *
      * @param anAuthorizationConnector an authorization connector
      */
-    @Autowired
+    @Autowired(required = false)
     public void setAuthorizationConnector(AuthorizationConnector anAuthorizationConnector) {
         if (anAuthorizationConnector == null) {
             throw new IllegalArgumentException("authorizationConnector is null");
