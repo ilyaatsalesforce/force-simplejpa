@@ -27,6 +27,8 @@ import com.sun.jersey.api.representation.Form;
 /**
  * An implementation of {@link AuthorizationConnector} which uses a username and password to obtain the authorization
  * through an OAuth username-password flow performed at the time of construction.
+ * <p/>
+ * This class can also be used standalone (outside the context of SimpleJpa).
  *
  * @author davidbuccola
  */
@@ -34,6 +36,7 @@ public class PasswordAuthorizationConnector implements AuthorizationConnector {
     private static final Logger log = LoggerFactory.getLogger(PasswordAuthorizationConnector.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
+    private URI idUrl;
     private URI instanceUrl;
     private String authorization;
 
@@ -117,6 +120,7 @@ public class PasswordAuthorizationConnector implements AuthorizationConnector {
                 .post(InputStream.class, form);
             JsonNode jsonTree = objectMapper.readTree(jsonStream);
 
+            idUrl = new URI(jsonTree.get("id").asText());
             instanceUrl = new URI(jsonTree.get("instance_url").asText());
             authorization = "OAuth " + jsonTree.get("access_token").asText();
 
@@ -146,6 +150,10 @@ public class PasswordAuthorizationConnector implements AuthorizationConnector {
     @Override
     public final URI getInstanceUrl() {
         return instanceUrl;
+    }
+
+    public URI getIdUrl() {
+        return idUrl;
     }
 
     private static String getRequiredEnvironment(String name) {
