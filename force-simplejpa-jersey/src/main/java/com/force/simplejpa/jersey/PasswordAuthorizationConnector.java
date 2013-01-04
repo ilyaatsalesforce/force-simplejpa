@@ -13,6 +13,7 @@ import java.net.URISyntaxException;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -45,11 +46,11 @@ public class PasswordAuthorizationConnector implements AuthorizationConnector {
      * environment.
      * <p/>
      * The environment must contain: <ul> <li>FORCE_USERNAME - the username of a Salesforce user</li> <li>FORCE_PASSWORD
-     * - the password of a Salesforce user</li> <li>FORCE_OAUTH_CLIENT_ID - the client id of a Salesforce connected
-     * application</li> <li>FORCE_OAUTH_CLIENT_SECRET - the client secret of a Salesforce connected application</li>
+     * - the password of a Salesforce user</li> <li>FORCE_CLIENT_ID - the client id of a Salesforce connected
+     * application</li> <li>FORCE_CLIENT_SECRET - the client secret of a Salesforce connected application</li>
      * </ul>
      * <p/>
-     * The environment can also contain: <ul> <li>FORCE_OAUTH_SERVER_URL - the OAuth server URL</li> </ul>
+     * The environment can also contain: <ul> <li>FORCE_SERVER_URL - the Salesforce server URL</li> </ul>
      */
     public PasswordAuthorizationConnector() {
         this(
@@ -61,9 +62,9 @@ public class PasswordAuthorizationConnector implements AuthorizationConnector {
      * Constructs an instance with a username and password passed as parameters but the remaining information necessary
      * to perform an OAuth username-password flow passed coming from the environment.
      * <p/>
-     * The environment must contain: <ul> <li>FORCE_OAUTH_CLIENT_ID - the client id of a Salesforce connected
-     * application</li> <li>FORCE_OAUTH_CLIENT_SECRET - the client secret of a Salesforce connected application</li>
-     * </ul> The environment can also contain: <ul> <li>FORCE_OAUTH_SERVER_URL - he OAuth server URL</li> </ul>
+     * The environment must contain: <ul> <li>FORCE_CLIENT_ID - the client id of a Salesforce connected
+     * application</li> <li>FORCE_CLIENT_SECRET - the client secret of a Salesforce connected application</li>
+     * </ul> The environment can also contain: <ul> <li>FORCE_SERVER_URL - the Salesforce server URL</li> </ul>
      *
      * @param username the username of a Salesforce user
      * @param password the password of a Salesforce user
@@ -72,9 +73,9 @@ public class PasswordAuthorizationConnector implements AuthorizationConnector {
         this(
             username,
             password,
-            getRequiredEnvironment("FORCE_OAUTH_CLIENT_ID"),
-            getRequiredEnvironment("FORCE_OAUTH_CLIENT_SECRET"),
-            getDefaultedEnvironment("FORCE_OAUTH_SERVER_URL", "https://login.salesforce.com/services/oauth2"));
+            getRequiredEnvironment("FORCE_CLIENT_ID"),
+            getRequiredEnvironment("FORCE_CLIENT_SECRET"),
+            getDefaultedEnvironment("FORCE_SERVER_URL", "https://login.salesforce.com/"));
     }
 
     /**
@@ -85,24 +86,14 @@ public class PasswordAuthorizationConnector implements AuthorizationConnector {
      * @param password     the password of a Salesforce user
      * @param clientId     the client id of a Salesforce connected application
      * @param clientSecret the client secret of a Salesforce connected application
-     * @param serverUrl    the OAuth server URL
+     * @param serverUrl    the Salesforce server URL
      */
     public PasswordAuthorizationConnector(String username, String password, String clientId, String clientSecret, String serverUrl) {
-        if (username == null) {
-            throw new IllegalArgumentException("username is null");
-        }
-        if (password == null) {
-            throw new IllegalArgumentException("password is null");
-        }
-        if (clientId == null) {
-            throw new IllegalArgumentException("clientId is null");
-        }
-        if (clientSecret == null) {
-            throw new IllegalArgumentException("clientSecret is null");
-        }
-        if (serverUrl == null) {
-            throw new IllegalArgumentException("serverUrl is null");
-        }
+        Validate.notEmpty(username, "username must be specified");
+        Validate.notEmpty(password, "password must be specified");
+        Validate.notEmpty(clientId, "clientId must be specified");
+        Validate.notEmpty(clientSecret, "clientSecret must be specified");
+        Validate.notEmpty(serverUrl, "serverUrl must be specified");
 
         Client client = Client.create();
         try {
@@ -115,7 +106,7 @@ public class PasswordAuthorizationConnector implements AuthorizationConnector {
 
             InputStream jsonStream = client
                 .resource(serverUrl)
-                .path("token")
+                .path("services/oauth2/token")
                 .type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
                 .post(InputStream.class, form);
             JsonNode jsonTree = objectMapper.readTree(jsonStream);
