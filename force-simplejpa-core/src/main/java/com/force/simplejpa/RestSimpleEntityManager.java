@@ -107,10 +107,10 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
             String json = convertEntityToJson(entity);
             optionallyLogRequest("Merge", descriptor.getName(), id, json);
             connector.doUpdate(descriptor.getName(), id, json);
-            return find(descriptor, (Class<T>) entity.getClass(), id);
         } finally {
             EntityUtils.setEntityId(descriptor, entity, id); // Restore ID value. Yuk, but don't blame me :-)
         }
+        return entity;
     }
 
     @Override

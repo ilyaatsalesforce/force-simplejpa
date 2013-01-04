@@ -25,7 +25,7 @@ public interface SimpleEntityManager {
      *               least contain a value for the ID field.
      * @param <T>    a class annotated with JPA persistence annotations
      *
-     * @return the resulting entity after the merge
+     * @return the input entity
      */
     <T> T merge(T entity);
 
