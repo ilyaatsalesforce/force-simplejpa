@@ -93,7 +93,11 @@ class EntityPropertyNamingStrategy extends PropertyNamingStrategy {
         if (namespace != null && isMissingNamespace(propertyNameSansSuffix))
             propertyNameSansSuffix = namespace + "__" + propertyNameSansSuffix;
 
-        return propertyNameSansSuffix + (isRelationshipField(member) ? "__r" : "__c");
+        if (forSerialization) {
+            return propertyNameSansSuffix + "__c";
+        } else {
+            return propertyNameSansSuffix + (isRelationshipField(member) ? "__r" : "__c");
+        }
     }
 
     /**
