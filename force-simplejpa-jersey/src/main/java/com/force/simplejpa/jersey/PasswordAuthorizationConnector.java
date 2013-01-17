@@ -54,8 +54,8 @@ public class PasswordAuthorizationConnector implements AuthorizationConnector {
      */
     public PasswordAuthorizationConnector() {
         this(
-            getRequiredEnvironment("FORCE_USERNAME"),
-            getRequiredEnvironment("FORCE_PASSWORD"));
+            getRequiredProperty("FORCE_USERNAME"),
+            getRequiredProperty("FORCE_PASSWORD"));
     }
 
     /**
@@ -73,9 +73,9 @@ public class PasswordAuthorizationConnector implements AuthorizationConnector {
         this(
             username,
             password,
-            getRequiredEnvironment("FORCE_CLIENT_ID"),
-            getRequiredEnvironment("FORCE_CLIENT_SECRET"),
-            getDefaultedEnvironment("FORCE_SERVER_URL", "https://login.salesforce.com/"));
+            getRequiredProperty("FORCE_CLIENT_ID"),
+            getRequiredProperty("FORCE_CLIENT_SECRET"),
+            getDefaultedProperty("FORCE_SERVER_URL", "https://login.salesforce.com/"));
     }
 
     /**
@@ -147,21 +147,29 @@ public class PasswordAuthorizationConnector implements AuthorizationConnector {
         return idUrl;
     }
 
-    private static String getRequiredEnvironment(String name) {
-        String value = System.getenv(name);
+    private static String getRequiredProperty(String name) {
+        String value = getFromSystemOrEnvironment(name);
         if (StringUtils.isEmpty(value)) {
-            throw new IllegalStateException(String.format("Environment variable %s is not set", name));
+            throw new IllegalStateException(String.format("Environment variable or System property %s is not set", name));
         }
         return value;
     }
 
-    private static String getDefaultedEnvironment(String name, String defaultValue) {
-        String value = System.getenv(name);
+    private static String getDefaultedProperty(String name, String defaultValue) {
+        String value = getFromSystemOrEnvironment(name);
         if (StringUtils.isEmpty(value)) {
             return defaultValue;
         } else {
             return value;
         }
+    }
+
+    private static String getFromSystemOrEnvironment(String name) {
+        String value = System.getenv(name);
+        if (StringUtils.isEmpty(value)) {
+            value = System.getProperty(name);
+        }
+        return value;
     }
 
     private static String extractSfdcErrorMessage(UniformInterfaceException e) {
