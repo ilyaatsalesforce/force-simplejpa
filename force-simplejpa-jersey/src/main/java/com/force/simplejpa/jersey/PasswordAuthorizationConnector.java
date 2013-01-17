@@ -165,9 +165,9 @@ public class PasswordAuthorizationConnector implements AuthorizationConnector {
     }
 
     private static String getFromSystemOrEnvironment(String name) {
-        String value = System.getenv(name);
+        String value = System.getProperty(name);
         if (StringUtils.isEmpty(value)) {
-            value = System.getProperty(name);
+            value = System.getenv(name);
         }
         return value;
     }
