@@ -15,7 +15,6 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientRequest;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.filter.ClientFilter;
-import com.sun.jersey.client.apache4.ApacheHttpClient4;
 
 /**
  * A factory for instances of {@link com.force.simplejpa.SimpleEntityManager} that use a {@link JerseyRestConnector} for
@@ -40,7 +39,7 @@ public class SimpleEntityManagerFactory {
      * @see PasswordAuthorizationConnector
      */
     public SimpleEntityManagerFactory() {
-        this(ApacheHttpClient4.create());
+        this(new JerseyClientFactory().newInstance());
     }
 
     /**
