@@ -28,7 +28,7 @@ public final class IntrospectionUtils {
     private static final Set<String> STANDARD_FIELD_NAMES = Collections.unmodifiableSet(
         new HashSet<String>(Arrays.asList(
             "Id", "Name", "CreatedBy", "CreatedDate", "LastModifiedBy", "LastModifiedDate", "Owner",
-            "MasterLabel", "DeveloperName", "Language")));
+            "MasterLabel", "DeveloperName", "Language", "RecordType")));
 
     private IntrospectionUtils() {
         throw new UnsupportedOperationException("Can not be instantiated");
