@@ -11,8 +11,7 @@ import java.net.URI;
  * A connector which knows how to access the results of a Salesforce OAuth exchange for the purpose of configuring an
  * outbound REST request.
  * <p/>
- * This abstraction gives the surrounding application flexibility in how it obtains and stores the OAuth information. It
- * is used by @link RestConnector} factories to obtain OAuth information from the application.
+ * This abstraction gives the surrounding application flexibility in how it obtains and stores the information.
  *
  * @author davidbuccola
  */

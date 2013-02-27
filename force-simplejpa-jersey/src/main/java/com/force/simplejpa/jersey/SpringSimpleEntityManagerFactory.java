@@ -5,36 +5,30 @@
  */
 package com.force.simplejpa.jersey;
 
-import javax.ws.rs.core.HttpHeaders;
-
+import com.force.simplejpa.AuthorizationConnector;
+import com.force.simplejpa.RestSimpleEntityManager;
+import com.force.simplejpa.SimpleEntityManager;
+import com.sun.jersey.api.client.Client;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
 
-import com.force.simplejpa.AuthorizationConnector;
-import com.force.simplejpa.SimpleEntityManager;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientHandler;
-import com.sun.jersey.api.client.ClientRequest;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.filter.ClientFilter;
-
 /**
  * A Spring-based factory for request-scoped instances of {@link SimpleEntityManager} that use a {@link
  * JerseyRestConnector} for communications.
  * <p/>
- * TODO Add doc of how to configure in Spring context.
+ * TODO Add doc of how to configure in Spring context. Especially when you have special needs. Need to make sure it is
+ * request scoped.
  *
- * @author dbuccola
+ * @author davidbuccola
  */
 @Component("simpleEntityManagerFactory")
 @Scope(value = "request", proxyMode = ScopedProxyMode.INTERFACES)
 @edu.umd.cs.findbugs.annotations.SuppressWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
-public class SpringSimpleEntityManagerFactory implements FactoryBean<SimpleEntityManager>, InitializingBean {
+public class SpringSimpleEntityManagerFactory implements FactoryBean<SimpleEntityManager> {
     /**
      * The following factory configuration is placed in static fields so it is shared by all.
      * <p/>
@@ -44,16 +38,19 @@ public class SpringSimpleEntityManagerFactory implements FactoryBean<SimpleEntit
      * <p/>
      * We use static fields to make the factory configuration effectively application scoped singleton. This is helpful
      * because if the application is not careful they can do things that are really inefficient if the factory
-     * configuration was to be request-scoped.
+     * configuration is request-scoped.
+     * <p/>
+     * Also note that default values are established here so that extra spring configuration is not needed in simple use
+     * cases. The autowiring is set to "not required" so that you only need to configure if you have special needs.
      */
-    private static String apiVersion = null;
-    private static Client client = new JerseyClientFactory().newInstance();
     private static AuthorizationConnector authorizationConnector = new SpringRequestAuthorizationConnector();
+    private static Client client = new JerseyClientFactory().newInstance(authorizationConnector);
+    private static String apiVersion = null;
 
     /**
      * Sets the Salesforce API version used by the generated {@link SimpleEntityManager} instances.
      *
-     * @param anApiVersion a Salesforce API version (for example: "v27.0")
+     * @param anApiVersion a Salesforce API version (for example: "v28.0")
      */
     public void setApiVersion(String anApiVersion) {
         apiVersion = anApiVersion;
@@ -91,15 +88,8 @@ public class SpringSimpleEntityManagerFactory implements FactoryBean<SimpleEntit
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception {
-        if (!AuthorizationFilter.isPresent(client)) {
-            client.addFilter(new AuthorizationFilter());
-        }
-    }
-
-    @Override
     public SimpleEntityManager getObject() {
-        return SimpleEntityManagerFactoryUtils.newInstance(client, authorizationConnector, apiVersion);
+        return new RestSimpleEntityManager(new JerseyRestConnector(client, authorizationConnector.getInstanceUrl(), apiVersion));
     }
 
     @Override
@@ -110,39 +100,5 @@ public class SpringSimpleEntityManagerFactory implements FactoryBean<SimpleEntit
     @Override
     public boolean isSingleton() {
         return false;
-    }
-
-    /**
-     * An authorization filter that adds an authorization header to all outbound requests using information obtained
-     * from the {@link AuthorizationConnector} configured for this factory.
-     */
-    private static class AuthorizationFilter extends ClientFilter {
-        /**
-         * Checks if an instance of this authorization filter is already present in the client's filter chain.
-         *
-         * @param client the client
-         *
-         * @return true if an instance of this authorization filter is already present in the client's filter chain
-         */
-        public static boolean isPresent(Client client) {
-            ClientHandler handler = client.getHeadHandler();
-            while (handler != null) {
-                if (handler instanceof AuthorizationFilter) {
-                    return true;
-                }
-                if (handler instanceof ClientFilter) {
-                    handler = ((ClientFilter) handler).getNext();
-                } else {
-                    break;
-                }
-            }
-            return false;
-        }
-
-        @Override
-        public ClientResponse handle(ClientRequest clientRequest) {
-            clientRequest.getHeaders().add(HttpHeaders.AUTHORIZATION, authorizationConnector.getAuthorization());
-            return getNext().handle(clientRequest);
-        }
     }
 }

@@ -4,16 +4,17 @@ description = 'Simple Entity Manager for Salesforce - Jersey components'
 
 dependencies {
     compile project(":force-simplejpa-core")
-    compile "com.google.code.findbugs:annotations:${findbugsVersion}", provided
+    compile "com.google.code.findbugs:annotations:2.0.1", provided
     compile "com.sun.jersey.contribs:jersey-apache-client4:${jerseyVersion}"
     compile "com.sun.jersey:jersey-core:${jerseyVersion}"
     compile "com.sun.jersey:jersey-json:${jerseyVersion}"
     compile "com.sun.jersey:jersey-client:${jerseyVersion}"
-    compile "javax.servlet:javax.servlet-api:${javaxServletVersion}", provided
-    compile "org.glassfish.hk2.external:javax.inject:${glassfishInjectVersion}"
+    compile "javax.servlet:javax.servlet-api:3.0.1", provided
+    compile "org.glassfish.hk2.external:javax.inject:1.6.34"
     compile "org.springframework:spring-web:${springVersion}", provided
 
     testCompile "junit:junit:${junitVersion}"
     testRuntime "ch.qos.logback:logback-classic:${logbackVersion}"
     testRuntime "org.slf4j:jcl-over-slf4j:${slf4jVersion}"
+    testCompile "org.springframework:spring-test:${springVersion}"
 }

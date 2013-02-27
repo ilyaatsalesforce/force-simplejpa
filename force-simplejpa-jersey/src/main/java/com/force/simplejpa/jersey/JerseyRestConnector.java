@@ -5,19 +5,26 @@
  */
 package com.force.simplejpa.jersey;
 
-import java.io.InputStream;
-import java.net.URI;
-
-import javax.ws.rs.core.MediaType;
-
-import org.codehaus.jettison.json.JSONArray;
-import org.codehaus.jettison.json.JSONObject;
-
 import com.force.simplejpa.EntityRequestException;
 import com.force.simplejpa.RestConnector;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.ws.rs.core.MediaType;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A {@link RestConnector} implementation that uses Sun's Jersey 1.x client to connect to Salesforce persistence using
@@ -26,24 +33,49 @@ import com.sun.jersey.api.client.WebResource;
  * @author davidbuccola
  */
 public final class JerseyRestConnector implements RestConnector {
-    private WebResource dataResource;
+    private static final Logger log = LoggerFactory.getLogger(JerseyRestConnector.class);
+    private static final Cache<URI, String> versionedPathCache = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.HOURS).build();
+
+    private final Client client;
+    private final URI instanceUrl;
+    private final String apiVersion;
+    private AtomicReference<WebResource> dataResourceHolder = new AtomicReference<WebResource>();
 
     /**
-     * Constructs a new instance with the given {@link WebResource}.
+     * Constructs a new instance with the given instance URL and api version.
      *
-     * @param dataResource a {@link WebResource} which refers to a particular version of the Salesforce "data" resource.
-     *                     As an example, the {@link WebResource} should correspond to a URL something like this:
-     *                     <tt>https://na1.salesforce.com/services/data/v26.0</tt> (the instance prefix or the API
-     *                     version may be different in your case).
+     * @param client      the fully configured Jersey client
+     * @param instanceUrl the URL of the instance to a {@link WebResource} which refers to a particular instance.
+     * @param apiVersion  an optional apiVersion. If specified as <code>null</code>, then the highest available API
+     *                    version supported by the server will be used.
      */
-    public JerseyRestConnector(WebResource dataResource) {
-        this.dataResource = dataResource;
+    public JerseyRestConnector(Client client, URI instanceUrl, String apiVersion) {
+        this.client = client;
+        this.instanceUrl = instanceUrl;
+        this.apiVersion = apiVersion;
+    }
+
+    /**
+     * Obtain the data resource object. Lazily create it if necessary. It is created lazily because the process can
+     * involve server I/O to obtain the version number and that is something we don't want to do at construction time
+     * when things might not be fully wired up yet.
+     *
+     * @return the data resource object
+     */
+    private WebResource getDataResource() {
+        WebResource dataResource = dataResourceHolder.get();
+        if (dataResource == null) {
+            WebResource instanceResource = client.resource(instanceUrl);
+            dataResource = instanceResource.path(getVersionedPath(instanceResource, apiVersion));
+            dataResourceHolder.compareAndSet(null, dataResource);
+        }
+        return dataResource;
     }
 
     @Override
     public InputStream doCreate(String entityType, String jsonBody) {
         try {
-            return dataResource.path("sobjects").path(entityType)
+            return getDataResource().path("sobjects").path(entityType)
                 .accept(MediaType.APPLICATION_JSON_TYPE)
                 .type(MediaType.APPLICATION_JSON_TYPE)
                 .post(InputStream.class, jsonBody);
@@ -55,7 +87,7 @@ public final class JerseyRestConnector implements RestConnector {
     @Override
     public InputStream doGet(URI uri) {
         try {
-            return dataResource.uri(uri)
+            return getDataResource().uri(uri)
                 .accept(MediaType.APPLICATION_JSON_TYPE)
                 .get(InputStream.class);
         } catch (UniformInterfaceException e) {
@@ -66,7 +98,7 @@ public final class JerseyRestConnector implements RestConnector {
     @Override
     public InputStream doQuery(String soql) {
         try {
-            return dataResource.path("query")
+            return getDataResource().path("query")
                 .queryParam("q", soql)
                 .accept(MediaType.APPLICATION_JSON_TYPE)
                 .get(InputStream.class);
@@ -78,7 +110,7 @@ public final class JerseyRestConnector implements RestConnector {
     @Override
     public void doUpdate(String entityType, String id, String jsonBody) {
         try {
-            ClientResponse response = dataResource.path("sobjects").path(entityType).path(id)
+            ClientResponse response = getDataResource().path("sobjects").path(entityType).path(id)
                 .accept(MediaType.APPLICATION_JSON_TYPE)
                 .type(MediaType.APPLICATION_JSON_TYPE)
                 .method("PATCH", ClientResponse.class, jsonBody);
@@ -94,7 +126,7 @@ public final class JerseyRestConnector implements RestConnector {
     @Override
     public void doDelete(String entityType, String id) {
         try {
-            ClientResponse response = dataResource.path("sobjects").path(entityType).path(id)
+            ClientResponse response = getDataResource().path("sobjects").path(entityType).path(id)
                 .accept(MediaType.APPLICATION_JSON_TYPE)
                 .type(MediaType.APPLICATION_JSON_TYPE)
                 .delete(ClientResponse.class);
@@ -115,6 +147,34 @@ public final class JerseyRestConnector implements RestConnector {
         } catch (Exception e1) {
             // Failed to extract Force error message. There probably was none. Just return exception message.
             return e.getMessage();
+        }
+    }
+
+    private static String getVersionedPath(final WebResource instanceResource, String apiVersion) {
+        if (apiVersion != null) {
+            return "/services/data/" + apiVersion;
+        } else {
+            return getPathForHighestVersion(instanceResource);
+        }
+    }
+
+    private static String getPathForHighestVersion(final WebResource instanceResource) {
+        try {
+            return versionedPathCache.get(instanceResource.getURI(), new Callable<String>() {
+                @Override
+                public String call() throws JSONException {
+                    log.debug(String.format("Asking %s about Salesforce API versions", instanceResource.getURI()));
+                    JSONArray versionChoices =
+                        instanceResource.path("services/data")
+                            .accept(MediaType.APPLICATION_JSON_TYPE)
+                            .get(JSONArray.class);
+
+                    JSONObject highestVersion = (JSONObject) versionChoices.get(versionChoices.length() - 1);
+                    return (String) highestVersion.get("url");
+                }
+            });
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to retrieve Salesforce API version information", e);
         }
     }
 }

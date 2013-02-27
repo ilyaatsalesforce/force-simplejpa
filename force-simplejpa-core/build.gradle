@@ -3,14 +3,14 @@ apply plugin: 'java'
 description = 'Simple Entity Manager for Salesforce - Core components'
 
 dependencies {
-    compile "com.google.guava:guava:${guavaVersion}"
-    compile "commons-lang:commons-lang:${commonsLangVersion}"
-    compile "org.apache.geronimo.specs:geronimo-jpa_2.0_spec:${geronimoJpaVesion}"
+    compile "com.google.guava:guava:13.0"
+    compile "commons-lang:commons-lang:2.6"
+    compile "org.apache.geronimo.specs:geronimo-jpa_2.0_spec:1.0"
     compile "org.codehaus.jackson:jackson-mapper-asl:${jacksonVersion}"
     compile "org.slf4j:slf4j-api:${slf4jVersion}"
 
     testCompile "junit:junit:${junitVersion}"
-    testCompile "org.easymock:easymock:${easymockVersion}"
+    testCompile "org.easymock:easymock:3.1"
     testRuntime "ch.qos.logback:logback-classic:${logbackVersion}"
     testRuntime "org.slf4j:jcl-over-slf4j:${slf4jVersion}"
 }
