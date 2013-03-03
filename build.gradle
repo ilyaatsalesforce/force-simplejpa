@@ -81,7 +81,7 @@ configure(subprojects) {
     tasks.withType(Compile) {
         options.debug = true
         options.encoding = 'UTF-8'
-        options.compilerArgs = ['-Xlint:-options'] // Ignore warning about bootclasspath and source compatibility for now
+        options.compilerArgs = ['-Xlint:-options'] // Ignore warning about bootclasspath and source compatibility (for now)
     }
 
     tasks.withType(Jar) {
@@ -123,38 +123,38 @@ configure(subprojects) {
         }
     }
 
-    if (file("src/itest").exists()) {
+    if (file("src/integrationTest").exists()) {
         sourceSets {
-            itest {
+            integrationTest {
                 compileClasspath += main.output + test.output
                 runtimeClasspath += main.output + test.output
             }
         }
 
         configurations {
-            itestCompile.extendsFrom testCompile
-            itestRuntime.extendsFrom testRuntime
+            integrationTestCompile.extendsFrom testCompile
+            integrationTestRuntime.extendsFrom testRuntime
         }
 
-        task itest(type: Test) {
-            classpath = sourceSets.itest.runtimeClasspath
-            testClassesDir = sourceSets.itest.output.classesDir
+        task integrationTest(type: Test) {
+            classpath = sourceSets.integrationTest.runtimeClasspath
+            testClassesDir = sourceSets.integrationTest.output.classesDir
             testResultsDir = file("${project.testResultsDir}/$name")
         }
 
         idea {
             module {
-                testSourceDirs += sourceSets.itest.java.srcDirs
-                testSourceDirs += sourceSets.itest.resources.srcDirs
-                scopes.TEST.plus.add(configurations.itestCompile)
-                scopes.TEST.plus.add(configurations.itestRuntime)
+                testSourceDirs += sourceSets.integrationTest.java.srcDirs
+                testSourceDirs += sourceSets.integrationTest.resources.srcDirs
+                scopes.TEST.plus.add(configurations.integrationTestCompile)
+                scopes.TEST.plus.add(configurations.integrationTestRuntime)
             }
         }
 
         eclipse {
             classpath {
-                plusConfigurations.add(configurations.itestCompile)
-                plusConfigurations.add(configurations.itestRuntime)
+                plusConfigurations.add(configurations.integrationTestCompile)
+                plusConfigurations.add(configurations.integrationTestRuntime)
             }
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright, 2012, SALESFORCE.com 
+ * Copyright, 2012-2013, SALESFORCE.com
  * All Rights Reserved
  * Company Confidential
  */
@@ -14,7 +14,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * @author dbuccola
+ * @author davidbuccola
  */
 public class SimpleEntityManagerIntegrationTest {
     private SimpleEntityManagerFactory emFactory = new SimpleEntityManagerFactory();

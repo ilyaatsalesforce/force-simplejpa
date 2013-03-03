@@ -1,23 +1,35 @@
 /*
- * Copyright, 1999-2012, SALESFORCE.com
+ * Copyright, 2012-2013, SALESFORCE.com
  * All Rights Reserved
  * Company Confidential
  */
-package com.force.simplejpa;
+package com.force.simplejpa.domain;
 
 import javax.persistence.Entity;
+import javax.persistence.Id;
+import java.util.Map;
 
 /**
  * @author davidbuccola
  */
 @Entity
-public class Bean1 {
+public class SimpleBean {
+    private Map<String,String> attributes;
+
+    @Id
     private String id;
 
     private String name;
 
     private String description;
 
+    public Map<String, String> getAttributes() {
+        return attributes;
+    }
+
+    public void setAttributes(Map<String, String> attributes) {
+        this.attributes = attributes;
+    }
     public String getId() {
         return id;
     }

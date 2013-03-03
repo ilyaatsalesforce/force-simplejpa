@@ -1,9 +1,9 @@
 /*
- * Copyright, 1999-2012, SALESFORCE.com
+ * Copyright, 2012-2013, SALESFORCE.com
  * All Rights Reserved
  * Company Confidential
  */
-package com.force.simplejpa;
+package com.force.simplejpa.domain;
 
 import java.util.List;
 
@@ -15,15 +15,15 @@ import javax.persistence.OneToMany;
  * @author davidbuccola
  */
 @Entity
-public class Bean2 {
+public class SimpleContainerBean {
     private String id;
 
     @OneToMany
     @Column(name = "relatedBeans")
-    private List<Bean1> relatedBeans;
+    private List<SimpleBean> relatedBeans;
 
     @OneToMany
-    private Bean1[] moreRelatedBeans;
+    private SimpleBean[] moreRelatedBeans;
 
     public String getId() {
         return id;
@@ -33,19 +33,19 @@ public class Bean2 {
         this.id = id;
     }
 
-    public List<Bean1> getRelatedBeans() {
+    public List<SimpleBean> getRelatedBeans() {
         return relatedBeans;
     }
 
-    public void setRelatedBeans(List<Bean1> relatedBeans) {
+    public void setRelatedBeans(List<SimpleBean> relatedBeans) {
         this.relatedBeans = relatedBeans;
     }
 
-    public Bean1[] getMoreRelatedBeans() {
+    public SimpleBean[] getMoreRelatedBeans() {
         return moreRelatedBeans;
     }
 
-    public void setMoreRelatedBeans(Bean1[] moreRelatedBeans) {
+    public void setMoreRelatedBeans(SimpleBean[] moreRelatedBeans) {
         this.moreRelatedBeans = moreRelatedBeans;
     }
 }

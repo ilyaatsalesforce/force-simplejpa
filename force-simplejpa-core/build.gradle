@@ -9,8 +9,10 @@ dependencies {
     compile "org.codehaus.jackson:jackson-mapper-asl:${jacksonVersion}"
     compile "org.slf4j:slf4j-api:${slf4jVersion}"
 
+    testCompile "commons-io:commons-io:2.4"
     testCompile "junit:junit:${junitVersion}"
-    testCompile "org.easymock:easymock:3.1"
+    testCompile "org.mockito:mockito-all:1.9.5"
+
     testRuntime "ch.qos.logback:logback-classic:${logbackVersion}"
     testRuntime "org.slf4j:jcl-over-slf4j:${slf4jVersion}"
 }

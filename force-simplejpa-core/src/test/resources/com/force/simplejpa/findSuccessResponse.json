@@ -1,0 +1,15 @@
+{
+    "done":true,
+    "totalSize":1,
+    "records":[
+        {
+            "attributes" : {
+                "type" : "SimpleBean",
+                "url" : "/services/data/v28.0/sobjects/SimpleBean/a01i00000000001"
+            },
+            "id":"a01i00000000001",
+            "name":"Name 1",
+            "description":"Description 1"
+        }
+   ]
+}
