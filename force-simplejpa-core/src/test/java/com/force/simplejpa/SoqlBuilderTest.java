@@ -5,6 +5,7 @@
  */
 package com.force.simplejpa;
 
+import com.force.simplejpa.domain.RecursiveBean;
 import com.force.simplejpa.domain.SimpleBean;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -31,7 +32,7 @@ public class SoqlBuilderTest {
     }
 
     @Test
-    public void noPrefix() throws Exception {
+    public void testBasicWildcard() throws Exception {
         String soqlTemplate = "select * from SimpleBean where Id = '012345678901234'";
         String expectedSoql = "select Id,Name,Description from SimpleBean where Id = '012345678901234'";
 
@@ -40,7 +41,7 @@ public class SoqlBuilderTest {
     }
 
     @Test
-    public void onePartPrefix() throws Exception {
+    public void testWildcardWithOnePartPrefix() throws Exception {
         String soqlTemplate = "select Prefix1.* from SimpleBean where Id = '012345678901234'";
         String expectedSoql = "select Prefix1.Id,Prefix1.Name,Prefix1.Description from SimpleBean where Id = '012345678901234'";
 
@@ -49,7 +50,7 @@ public class SoqlBuilderTest {
     }
 
     @Test
-    public void twoPartPrefix() throws Exception {
+    public void testWildcardWithTwoPartPrefix() throws Exception {
         String soqlTemplate = "select Prefix1.Prefix2.* from SimpleBean where Id = '012345678901234'";
         String expectedSoql = "select Prefix1.Prefix2.Id,Prefix1.Prefix2.Name,Prefix1.Prefix2.Description from SimpleBean where Id = '012345678901234'";
 
@@ -58,7 +59,7 @@ public class SoqlBuilderTest {
     }
 
     @Test
-    public void emptyEntityName() throws Exception {
+    public void testWildcardWithEmptyEntityNameQualifier() throws Exception {
         String soqlTemplate = "select *{} from SimpleBean where Id = '012345678901234'";
         String expectedSoql = "select Id,Name,Description from SimpleBean where Id = '012345678901234'";
 
@@ -67,7 +68,7 @@ public class SoqlBuilderTest {
     }
 
     @Test
-    public void rightEntityName() throws Exception {
+    public void testWildcardWithEntityNameQualifier() throws Exception {
         String soqlTemplate = "select *{SimpleBean} from SimpleBean where Id = '012345678901234'";
         String expectedSoql = "select Id,Name,Description from SimpleBean where Id = '012345678901234'";
 
@@ -76,7 +77,7 @@ public class SoqlBuilderTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void wrongEntityName() throws Exception {
+    public void testWildcardWithWrongEntityNameQualifier() throws Exception {
         String soqlTemplate = "select *{UnknownBean} from SimpleBean where Id = '012345678901234'";
         String expectedSoql = "select Id,Name,Description from SimpleBean where Id = '012345678901234'";
 
@@ -85,11 +86,20 @@ public class SoqlBuilderTest {
     }
 
     @Test
-    public void withRelationshipQuery() throws Exception {
+    public void testRelationshipSubquery() throws Exception {
         String soqlTemplate = "select (select RelatedBean.* from SimpleBean.RelatedBeans) from SimpleBean where Id = '012345678901234'";
         String expectedSoql = "select (select RelatedBean.Id,RelatedBean.Name,RelatedBean.Description from SimpleBean.RelatedBeans) from SimpleBean where Id = '012345678901234'";
 
         String soql = new SoqlBuilder(descriptorProvider.get(SimpleBean.class)).soqlTemplate(soqlTemplate).build();
+        Assert.assertEquals(expectedSoql, soql);
+    }
+
+    @Test
+    public void testRecursiveTypeReferences() throws Exception {
+        String soqlTemplate = "select * from RecursiveBean where Id = '012345678901234'";
+        String expectedSoql = "select Id,RecursiveBean.Id,RecursiveBean.RecursiveBean.Id,RecursiveBean.RecursiveBean.RecursiveBean.Id,RecursiveBean.RecursiveBean.RecursiveBean.RecursiveBean.Id,RecursiveBean.RecursiveBean.RecursiveBean.RecursiveBean.RecursiveBean.Id from RecursiveBean where Id = '012345678901234'";
+
+        String soql = new SoqlBuilder(descriptorProvider.get(RecursiveBean.class)).soqlTemplate(soqlTemplate).build();
         Assert.assertEquals(expectedSoql, soql);
     }
 }
