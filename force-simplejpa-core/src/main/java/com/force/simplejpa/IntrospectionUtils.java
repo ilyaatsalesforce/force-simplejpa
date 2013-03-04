@@ -25,10 +25,21 @@ import org.codehaus.jackson.map.introspect.AnnotatedMember;
  * @author davidbuccola
  */
 public final class IntrospectionUtils {
-    private static final Set<String> STANDARD_FIELD_NAMES = Collections.unmodifiableSet(
+    // The names of standard Salesforce properties.
+    private static final Set<String> STANDARD_PROPERTIES = Collections.unmodifiableSet(
         new HashSet<String>(Arrays.asList(
             "Id", "Name", "CreatedBy", "CreatedDate", "LastModifiedBy", "LastModifiedDate", "Owner",
-            "MasterLabel", "DeveloperName", "Language", "RecordType")));
+            "MasterLabel", "DeveloperName", "Language", "RecordType", "attributes")));
+
+    // The names of standard Salesforce properties that can not be sent with record creation.
+    private static final Set<String> NON_INSERTABLE_STANDARD_PROPERTIES = Collections.unmodifiableSet(
+        new HashSet<String>(Arrays.asList(
+            "Id", "CreatedBy", "CreatedDate", "LastModifiedBy", "LastModifiedDate")));
+
+    // The names of standard Salesforce properties that can not be sent with record update.
+    private static final Set<String> NON_UPDATABLE_STANDARD_PROPERTIES = Collections.unmodifiableSet(
+        new HashSet<String>(Arrays.asList(
+            "Id", "CreatedBy", "CreatedDate", "LastModifiedBy", "LastModifiedDate")));
 
     private IntrospectionUtils() {
         throw new UnsupportedOperationException("Can not be instantiated");
@@ -49,11 +60,19 @@ public final class IntrospectionUtils {
         return !name.contains("__");
     }
 
-    static boolean isNotStandardProperty(String name) {
-        return !STANDARD_FIELD_NAMES.contains(name);
+    static boolean isStandardProperty(String name) {
+        return STANDARD_PROPERTIES.contains(name);
     }
 
-    static boolean isRelationshipField(Annotated annotated) {
+    static boolean isNonInsertableStandardProperty(String name) {
+        return NON_INSERTABLE_STANDARD_PROPERTIES.contains(name);
+    }
+
+    static boolean isNonUpdatableStandardProperty(String name) {
+        return NON_UPDATABLE_STANDARD_PROPERTIES.contains(name);
+    }
+
+    static boolean isRelationshipProperty(Annotated annotated) {
         if (!(annotated instanceof AnnotatedMember))
             return false;
 

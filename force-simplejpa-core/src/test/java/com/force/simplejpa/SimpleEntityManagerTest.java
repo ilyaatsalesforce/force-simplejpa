@@ -5,11 +5,17 @@
  */
 package com.force.simplejpa;
 
+import com.force.simplejpa.domain.InsertableUpdatableBean;
 import com.force.simplejpa.domain.SimpleBean;
 import com.force.simplejpa.domain.SimpleContainerBean;
+import com.force.simplejpa.domain.StandardFieldBean;
+import com.force.simplejpa.domain.UserMoniker;
 import org.junit.Test;
 
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -24,43 +30,79 @@ import static org.mockito.Mockito.when;
 public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
     @Test
     public void testPersistSuccess() throws Exception {
-        SimpleBean simpleBean = new SimpleBean();
-        simpleBean.setName("Name 1");
-        simpleBean.setDescription("Description 1");
+        SimpleBean bean = new SimpleBean();
+        bean.setName("Name 1");
+        bean.setDescription("Description 1");
 
         when(
             mockConnector.doCreate(anyString(), anyString()))
             .thenReturn(getResourceStream("persistSuccessResponse.json"));
 
-        em.persist(simpleBean);
+        em.persist(bean);
 
         verify(mockConnector).doCreate("SimpleBean", getResourceString("persistSuccessRequest.json"));
     }
 
     @Test(expected = EntityResponseException.class)
     public void testPersistError() throws Exception {
-        SimpleBean simpleBean = new SimpleBean();
-        simpleBean.setName("Name 1");
-        simpleBean.setDescription("Description 1");
+        SimpleBean bean = new SimpleBean();
+        bean.setName("Name 1");
+        bean.setDescription("Description 1");
 
         when(
             mockConnector.doCreate(anyString(), anyString()))
             .thenReturn(getResourceStream("persistErrorResponse.json"));
 
-        em.persist(simpleBean);
+        em.persist(bean);
     }
 
     @Test(expected = EntityResponseException.class)
     public void testPersistInvalidResponse() throws Exception {
-        SimpleBean simpleBean = new SimpleBean();
-        simpleBean.setName("Name 1");
-        simpleBean.setDescription("Description 1");
+        SimpleBean bean = new SimpleBean();
+        bean.setName("Name 1");
+        bean.setDescription("Description 1");
 
         when(
             mockConnector.doCreate(anyString(), anyString()))
             .thenReturn(getResourceStream("persistInvalidResponse.json"));
 
-        em.persist(simpleBean);
+        em.persist(bean);
+    }
+
+    @Test
+    public void testPersistStandardFields() throws Exception {
+        StandardFieldBean bean = new StandardFieldBean();
+        bean.setName("Name 1");
+        bean.setCreatedBy(new UserMoniker("a01i00000000201"));
+        bean.setCreatedDate(new Date());
+        bean.setLastModifiedBy(new UserMoniker("a01i00000000202"));
+        bean.setLastModifiedDate(new Date());
+        bean.setOwner(new UserMoniker("a01i00000000203"));
+
+        when(
+            mockConnector.doCreate(anyString(), anyString()))
+            .thenReturn(getResourceStream("persistSuccessResponse.json"));
+
+        em.persist(bean);
+
+        verify(mockConnector).doCreate("StandardFieldBean", getResourceString("persistStandardFieldsRequest.json"));
+    }
+
+    @Test
+    public void testPersistInsertableUpdatable() throws Exception {
+        InsertableUpdatableBean bean = new InsertableUpdatableBean();
+        bean.setName("Name 1");
+        bean.setNotInsertable("Updatable but not insertable value");
+        bean.setNotUpdatable("Insertable but not updatable value");
+        bean.setNotInsertableOrUpdatable("Not insertable or updatable value");
+
+        when(
+            mockConnector.doCreate(anyString(), anyString()))
+            .thenReturn(getResourceStream("persistSuccessResponse.json"));
+
+        em.persist(bean);
+
+        verify(mockConnector).doCreate("InsertableUpdatableBean", getResourceString("persistInsertableUpdatableRequest.json"));
     }
 
     @Test
@@ -82,6 +124,23 @@ public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
 
         doNothing().when(mockConnector).doUpdate(anyString(), anyString(), anyString());
         em.merge(simpleBeanChanges);
+    }
+
+    @Test
+    public void testMergeStandardFields() throws Exception {
+        StandardFieldBean standardFieldBeanChanges = new StandardFieldBean();
+        standardFieldBeanChanges.setId("a01i00000000001AAC");
+        standardFieldBeanChanges.setName("Name 1");
+        standardFieldBeanChanges.setCreatedBy(new UserMoniker("a01i00000000201"));
+        standardFieldBeanChanges.setCreatedDate(new Date());
+        standardFieldBeanChanges.setLastModifiedBy(new UserMoniker("a01i00000000202"));
+        standardFieldBeanChanges.setLastModifiedDate(new Date());
+        standardFieldBeanChanges.setOwner(new UserMoniker("a01i00000000203"));
+
+        doNothing().when(mockConnector).doUpdate(anyString(), anyString(), anyString());
+        em.merge(standardFieldBeanChanges);
+
+        verify(mockConnector).doUpdate("StandardFieldBean", "a01i00000000001AAC", getResourceString("mergeStandardFieldsRequest.json"));
     }
 
     @Test

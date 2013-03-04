@@ -5,14 +5,6 @@
  */
 package com.force.simplejpa;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.persistence.NoResultException;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.codehaus.jackson.JsonNode;
@@ -23,11 +15,18 @@ import org.codehaus.jackson.map.deser.StdDeserializerProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.NoResultException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * An implementation of {@link SimpleEntityManager} that is based on the JSON representations of the Salesforce REST
  * API.
  *
- * @author davidbuccola
+ * @author dbuccola
  */
 public final class RestSimpleEntityManager implements SimpleEntityManager {
     private static final Logger log = LoggerFactory.getLogger(RestSimpleEntityManager.class);
@@ -41,7 +40,6 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
 
     static {
         objectMapper.setDeserializerProvider(new StdDeserializerProvider(new SubqueryDeserializerFactory()));
-        objectMapper.withModule(new MapAsStringModule());
         objectMapper.setSerializationConfig(
             objectMapper.getSerializationConfig()
                 .withSerializationInclusion(JsonSerialize.Inclusion.NON_NULL)
@@ -75,7 +73,7 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
             throw new EntityRequestException("Id value should not exist for new object creation");
         }
 
-        String json = convertEntityToJson(entity);
+        String json = convertToJsonForPersist(entity);
         optionallyLogRequest("Persist", descriptor.getName(), null, json);
         InputStream responseStream = connector.doCreate(descriptor.getName(), json);
         JsonNode responseNode = parseJsonResponse(responseStream);
@@ -102,14 +100,9 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
 
         EntityDescriptor descriptor = getRequiredEntityDescriptor(entity.getClass());
         String id = getRequiredId(descriptor, entity);
-        EntityUtils.setEntityId(descriptor, entity, null); // Salesforce REST doesn't want ID present
-        try {
-            String json = convertEntityToJson(entity);
-            optionallyLogRequest("Merge", descriptor.getName(), id, json);
-            connector.doUpdate(descriptor.getName(), id, json);
-        } finally {
-            EntityUtils.setEntityId(descriptor, entity, id); // Restore ID value. Yuk, but don't blame me :-)
-        }
+        String json = convertToJsonForMerge(entity);
+        optionallyLogRequest("Merge", descriptor.getName(), id, json);
+        connector.doUpdate(descriptor.getName(), id, json);
         return entity;
     }
 
@@ -181,9 +174,17 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
         }
     }
 
-    private String convertEntityToJson(Object entity) {
+    private String convertToJsonForPersist(Object entity) {
         try {
-            return objectMapper.writeValueAsString(entity);
+            return objectMapper.writerWithView(SerializationViews.Persist.class).writeValueAsString(entity);
+        } catch (IOException e) {
+            throw new EntityResponseException("Failed to encode entity as JSON", e);
+        }
+    }
+
+    private String convertToJsonForMerge(Object entity) {
+        try {
+            return objectMapper.writerWithView(SerializationViews.Merge.class).writeValueAsString(entity);
         } catch (IOException e) {
             throw new EntityResponseException("Failed to encode entity as JSON", e);
         }
@@ -251,7 +252,7 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
                 for (JsonNode node : rootNode.get("records")) {
                     T resultObject = objectMapper.readValue(node, entityClass);
                     if (log.isDebugEnabled()) {
-                        log.debug(String.format("...Result Row: %s", convertEntityToJson(resultObject)));
+                        log.debug(String.format("...Result Row: %s", node.toString()));
                     }
                     results.add(resultObject);
                 }
@@ -263,7 +264,7 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
                     for (JsonNode node : rootNode.get("records")) {
                         T resultObject = objectMapper.readValue(node, entityClass);
                         if (log.isDebugEnabled()) {
-                            log.debug(String.format("...Result Row: %s", convertEntityToJson(resultObject)));
+                            log.debug(String.format("...Result Row: %s", node.toString()));
                         }
                         results.add(resultObject);
                     }

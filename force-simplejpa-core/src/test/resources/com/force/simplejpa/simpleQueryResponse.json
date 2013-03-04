@@ -7,18 +7,18 @@
                 "type" : "SimpleBean",
                 "url" : "/services/data/v28.0/sobjects/SimpleBean/a01i00000000001"
             },
-            "id":"a01i00000000001",
-            "name":"Name 1",
-            "description":"Description 1"
+            "Id":"a01i00000000001",
+            "Name":"Name 1",
+            "Description":"Description 1"
         },
         {
             "attributes" : {
                 "type" : "SimpleBean",
                 "url" : "/services/data/v28.0/sobjects/SimpleBean/a01i00000000002"
             },
-            "id":"a01i00000000002",
-            "name":"Name 2",
-            "description":"Description 2"
+            "Id":"a01i00000000002",
+            "Name":"Name 2",
+            "Description":"Description 2"
         }
    ]
 }

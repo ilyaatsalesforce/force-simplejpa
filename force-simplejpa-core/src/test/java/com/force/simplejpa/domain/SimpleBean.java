@@ -5,31 +5,28 @@
  */
 package com.force.simplejpa.domain;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import java.util.Map;
 
 /**
- * @author davidbuccola
+ * @author dbuccola
  */
 @Entity
 public class SimpleBean {
-    private Map<String,String> attributes;
-
     @Id
+    @Column( name = "Id")
     private String id;
 
+    @Column( name = "Name")
     private String name;
 
+    @Column( name = "Description")
     private String description;
 
-    public Map<String, String> getAttributes() {
-        return attributes;
-    }
+    private Map<String,String> attributes;
 
-    public void setAttributes(Map<String, String> attributes) {
-        this.attributes = attributes;
-    }
     public String getId() {
         return id;
     }
@@ -52,5 +49,13 @@ public class SimpleBean {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Map<String, String> getAttributes() {
+        return attributes;
+    }
+
+    public void setAttributes(Map<String, String> attributes) {
+        this.attributes = attributes;
     }
 }

@@ -9,20 +9,24 @@ import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
 /**
- * @author davidbuccola
+ * @author dbuccola
  */
 @Entity
 public class SimpleContainerBean {
+    @Id
+    @Column( name = "Id")
     private String id;
 
     @OneToMany
-    @Column(name = "relatedBeans")
+    @Column(name = "RelatedBeans")
     private List<SimpleBean> relatedBeans;
 
     @OneToMany
+    @Column(name = "MoreRelatedBeans")
     private SimpleBean[] moreRelatedBeans;
 
     public String getId() {

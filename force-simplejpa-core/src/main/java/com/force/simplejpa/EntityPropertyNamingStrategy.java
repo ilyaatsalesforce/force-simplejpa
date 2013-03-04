@@ -14,9 +14,9 @@ import org.codehaus.jackson.map.introspect.AnnotatedParameter;
 
 import static com.force.simplejpa.IntrospectionUtils.getEntityNamespace;
 import static com.force.simplejpa.IntrospectionUtils.isMissingNamespace;
-import static com.force.simplejpa.IntrospectionUtils.isNotStandardProperty;
+import static com.force.simplejpa.IntrospectionUtils.isStandardProperty;
 import static com.force.simplejpa.IntrospectionUtils.isPropertyOfCustomEntity;
-import static com.force.simplejpa.IntrospectionUtils.isRelationshipField;
+import static com.force.simplejpa.IntrospectionUtils.isRelationshipProperty;
 
 /**
  * A property naming strategy which helps with subtleties of naming objects in Salesforce. The strategy tries to help
@@ -67,7 +67,7 @@ class EntityPropertyNamingStrategy extends PropertyNamingStrategy {
      * @see #translateStandardPropertyName(org.codehaus.jackson.map.introspect.AnnotatedMember, String)
      */
     protected String translate(AnnotatedMember member, String propertyName) {
-        if (isPropertyOfCustomEntity(member) && isNotStandardProperty(propertyName)) {
+        if (isPropertyOfCustomEntity(member) && !isStandardProperty(propertyName)) {
             return translateCustomPropertyName(member, propertyName);
         } else {
             return translateStandardPropertyName(member, propertyName);
@@ -96,7 +96,7 @@ class EntityPropertyNamingStrategy extends PropertyNamingStrategy {
         if (forSerialization) {
             return propertyNameSansSuffix + "__c";
         } else {
-            return propertyNameSansSuffix + (isRelationshipField(member) ? "__r" : "__c");
+            return propertyNameSansSuffix + (isRelationshipProperty(member) ? "__r" : "__c");
         }
     }
 
@@ -113,7 +113,7 @@ class EntityPropertyNamingStrategy extends PropertyNamingStrategy {
      * @return the translated property name
      */
     protected String translateStandardPropertyName(AnnotatedMember member, String propertyName) {
-        if (isRelationshipField(member)) {
+        if (isRelationshipProperty(member)) {
             String propertyNameSansId = propertyName;
             if (propertyName.endsWith("Id"))
                 propertyNameSansId = propertyName.substring(0, propertyName.length() - 2);

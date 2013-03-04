@@ -32,8 +32,8 @@ public class SoqlBuilderTest {
 
     @Test
     public void noPrefix() throws Exception {
-        String soqlTemplate = "select * from SimpleBean where id = '012345678901234'";
-        String expectedSoql = "select id,name,description from SimpleBean where id = '012345678901234'";
+        String soqlTemplate = "select * from SimpleBean where Id = '012345678901234'";
+        String expectedSoql = "select Id,Name,Description from SimpleBean where Id = '012345678901234'";
 
         String soql = new SoqlBuilder(descriptorProvider.get(SimpleBean.class)).soqlTemplate(soqlTemplate).build();
         Assert.assertEquals(expectedSoql, soql);
@@ -41,8 +41,8 @@ public class SoqlBuilderTest {
 
     @Test
     public void onePartPrefix() throws Exception {
-        String soqlTemplate = "select Prefix1.* from SimpleBean where id = '012345678901234'";
-        String expectedSoql = "select Prefix1.id,Prefix1.name,Prefix1.description from SimpleBean where id = '012345678901234'";
+        String soqlTemplate = "select Prefix1.* from SimpleBean where Id = '012345678901234'";
+        String expectedSoql = "select Prefix1.Id,Prefix1.Name,Prefix1.Description from SimpleBean where Id = '012345678901234'";
 
         String soql = new SoqlBuilder(descriptorProvider.get(SimpleBean.class)).soqlTemplate(soqlTemplate).build();
         Assert.assertEquals(expectedSoql, soql);
@@ -50,8 +50,8 @@ public class SoqlBuilderTest {
 
     @Test
     public void twoPartPrefix() throws Exception {
-        String soqlTemplate = "select Prefix1.Prefix2.* from SimpleBean where id = '012345678901234'";
-        String expectedSoql = "select Prefix1.Prefix2.id,Prefix1.Prefix2.name,Prefix1.Prefix2.description from SimpleBean where id = '012345678901234'";
+        String soqlTemplate = "select Prefix1.Prefix2.* from SimpleBean where Id = '012345678901234'";
+        String expectedSoql = "select Prefix1.Prefix2.Id,Prefix1.Prefix2.Name,Prefix1.Prefix2.Description from SimpleBean where Id = '012345678901234'";
 
         String soql = new SoqlBuilder(descriptorProvider.get(SimpleBean.class)).soqlTemplate(soqlTemplate).build();
         Assert.assertEquals(expectedSoql, soql);
@@ -59,8 +59,8 @@ public class SoqlBuilderTest {
 
     @Test
     public void emptyEntityName() throws Exception {
-        String soqlTemplate = "select *{} from SimpleBean where id = '012345678901234'";
-        String expectedSoql = "select id,name,description from SimpleBean where id = '012345678901234'";
+        String soqlTemplate = "select *{} from SimpleBean where Id = '012345678901234'";
+        String expectedSoql = "select Id,Name,Description from SimpleBean where Id = '012345678901234'";
 
         String soql = new SoqlBuilder(descriptorProvider.get(SimpleBean.class)).soqlTemplate(soqlTemplate).build();
         Assert.assertEquals(expectedSoql, soql);
@@ -68,8 +68,8 @@ public class SoqlBuilderTest {
 
     @Test
     public void rightEntityName() throws Exception {
-        String soqlTemplate = "select *{SimpleBean} from SimpleBean where id = '012345678901234'";
-        String expectedSoql = "select id,name,description from SimpleBean where id = '012345678901234'";
+        String soqlTemplate = "select *{SimpleBean} from SimpleBean where Id = '012345678901234'";
+        String expectedSoql = "select Id,Name,Description from SimpleBean where Id = '012345678901234'";
 
         String soql = new SoqlBuilder(descriptorProvider.get(SimpleBean.class)).soqlTemplate(soqlTemplate).build();
         Assert.assertEquals(expectedSoql, soql);
@@ -77,8 +77,8 @@ public class SoqlBuilderTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void wrongEntityName() throws Exception {
-        String soqlTemplate = "select *{UnknownBean} from SimpleBean where id = '012345678901234'";
-        String expectedSoql = "select id,name,description from SimpleBean where id = '012345678901234'";
+        String soqlTemplate = "select *{UnknownBean} from SimpleBean where Id = '012345678901234'";
+        String expectedSoql = "select Id,Name,Description from SimpleBean where Id = '012345678901234'";
 
         String soql = new SoqlBuilder(descriptorProvider.get(SimpleBean.class)).soqlTemplate(soqlTemplate).build();
         Assert.assertEquals(expectedSoql, soql);
@@ -86,8 +86,8 @@ public class SoqlBuilderTest {
 
     @Test
     public void withRelationshipQuery() throws Exception {
-        String soqlTemplate = "select (select RelatedBean.* from SimpleBean.RelatedBeans) from SimpleBean where id = '012345678901234'";
-        String expectedSoql = "select (select RelatedBean.id,RelatedBean.name,RelatedBean.description from SimpleBean.RelatedBeans) from SimpleBean where id = '012345678901234'";
+        String soqlTemplate = "select (select RelatedBean.* from SimpleBean.RelatedBeans) from SimpleBean where Id = '012345678901234'";
+        String expectedSoql = "select (select RelatedBean.Id,RelatedBean.Name,RelatedBean.Description from SimpleBean.RelatedBeans) from SimpleBean where Id = '012345678901234'";
 
         String soql = new SoqlBuilder(descriptorProvider.get(SimpleBean.class)).soqlTemplate(soqlTemplate).build();
         Assert.assertEquals(expectedSoql, soql);

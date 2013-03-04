@@ -152,6 +152,9 @@ final class SoqlBuilder {
         List<String> fields = new ArrayList<String>();
         for (BeanPropertyDefinition property : descriptor.getBeanDescription().findProperties()) {
             String prefixedFieldName = prefix + property.getName();
+            if ( property.getName().equals("attributes")) {
+                continue;
+            }
             EntityDescriptor relatedDescriptor = descriptor.getRelatedEntities().get(property.getInternalName());
             if (relatedDescriptor != null) {
                 if (depth > 0) {
