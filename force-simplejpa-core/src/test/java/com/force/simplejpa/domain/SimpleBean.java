@@ -8,6 +8,7 @@ package com.force.simplejpa.domain;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Transient;
 import java.util.Map;
 
 /**
@@ -24,6 +25,9 @@ public class SimpleBean {
 
     @Column( name = "Description")
     private String description;
+
+    @Transient
+    private String state;
 
     private Map<String,String> attributes;
 
@@ -51,6 +55,14 @@ public class SimpleBean {
         this.description = description;
     }
 
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
     public Map<String, String> getAttributes() {
         return attributes;
     }
@@ -58,4 +70,6 @@ public class SimpleBean {
     public void setAttributes(Map<String, String> attributes) {
         this.attributes = attributes;
     }
+
+
 }

@@ -33,6 +33,7 @@ public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
         SimpleBean bean = new SimpleBean();
         bean.setName("Name 1");
         bean.setDescription("Description 1");
+        bean.setState("This is transient");
 
         when(
             mockConnector.doCreate(anyString(), anyString()))
