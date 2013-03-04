@@ -11,7 +11,6 @@ import java.util.List;
  * A simple JPA-like interface for controlling the execution of SOQL queries.
  *
  * @param <T> type of object returned by the query
- *
  * @author davidbuccola
  */
 public interface SimpleTypedQuery<T> {
@@ -21,6 +20,14 @@ public interface SimpleTypedQuery<T> {
      * @return the list of objects satisfying the query
      */
     List<T> getResultList();
+
+    /**
+     * Execute a SOQL query and return the list of objects satisfying the query.
+     *
+     * @param <R> the class of the returned object
+     * @return the list of objects satisfying the query
+     */
+    <R> List<R> getResultList(Class<R> resultClass);
 
     /**
      * Execute a SOQL query and return the single object satisfying the query. If more than one object satisfies the
@@ -34,7 +41,6 @@ public interface SimpleTypedQuery<T> {
      * Sets the maximum number of results to retrieve.
      *
      * @param maxResult the maximum number of results to retrieve
-     *
      * @return the same query instance
      */
     SimpleTypedQuery<T> setMaxResults(int maxResult);
@@ -43,7 +49,6 @@ public interface SimpleTypedQuery<T> {
      * Sets the position of the first result to retrieve.
      *
      * @param startPosition the position of the first result to retrieve
-     *
      * @return the same query instance
      */
     SimpleTypedQuery<T> setFirstResult(int startPosition);

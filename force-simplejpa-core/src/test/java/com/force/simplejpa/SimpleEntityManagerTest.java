@@ -10,12 +10,11 @@ import com.force.simplejpa.domain.SimpleBean;
 import com.force.simplejpa.domain.SimpleContainerBean;
 import com.force.simplejpa.domain.StandardFieldBean;
 import com.force.simplejpa.domain.UserMoniker;
+import org.codehaus.jackson.JsonNode;
 import org.junit.Test;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -180,7 +179,7 @@ public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
     }
 
     @Test
-    public void testSimpleQueryResult() throws Exception {
+    public void testSimpleQuery() throws Exception {
         when(mockConnector.doQuery(anyString())).thenReturn(getResourceStream("simpleQueryResponse.json"));
 
         List<SimpleBean> beans = em.createQuery("select * from SimpleBean", SimpleBean.class).getResultList();
@@ -203,7 +202,7 @@ public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
     }
 
     @Test
-    public void testSimpleSubqueryResult() throws Exception {
+    public void testSubquery() throws Exception {
         when(mockConnector.doQuery(anyString())).thenReturn(getResourceStream("simpleSubqueryResponse.json"));
 
         List<SimpleContainerBean> containerBeans =
@@ -243,5 +242,23 @@ public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
         assertEquals("a01i00000000004", bean4.getId());
         assertEquals("Name 4", bean4.getName());
         assertEquals("Description 4", bean4.getDescription());
+    }
+
+    @Test
+    public void testAggregateQuery() throws Exception {
+        when(mockConnector.doQuery(anyString())).thenReturn(getResourceStream("aggregateQueryResponse.json"));
+
+        List<JsonNode> jsonNodes =
+            em.createQuery("select count(Id),Name FROM SimpleBean GROUP BY Name", SimpleBean.class).getResultList(JsonNode.class);
+
+        assertEquals(2, jsonNodes.size());
+
+        JsonNode node1 = jsonNodes.get(0);
+        assertEquals(1, node1.get("expr0").asInt());
+        assertEquals("Name 1", node1.get("Name").asText());
+
+        JsonNode node2 = jsonNodes.get(1);
+        assertEquals(1, node2.get("expr0").asInt());
+        assertEquals("Name 2", node2.get("Name").asText());
     }
 }

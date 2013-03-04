@@ -235,7 +235,12 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
 
         @Override
         public List<T> getResultList() {
-            List<T> results = new ArrayList<T>();
+            return getResultList(entityClass);
+        }
+
+        @Override
+        public <R> List<R> getResultList(Class<R> resultClass) {
+            List<R> results = new ArrayList<R>();
             try {
                 String soql = new SoqlBuilder(descriptor)
                     .soqlTemplate(soqlTemplate)
@@ -250,11 +255,14 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
                 InputStream responseStream = connector.doQuery(soql);
                 JsonNode rootNode = objectMapper.readTree(responseStream);
                 for (JsonNode node : rootNode.get("records")) {
-                    T resultObject = objectMapper.readValue(node, entityClass);
                     if (log.isDebugEnabled()) {
                         log.debug(String.format("...Result Row: %s", node.toString()));
                     }
-                    results.add(resultObject);
+                    if (resultClass.equals(JsonNode.class)) {
+                        results.add((resultClass.cast(node)));
+                    } else {
+                        results.add(objectMapper.readValue(node, resultClass));
+                    }
                 }
 
                 // Request additional results if they exist
@@ -262,11 +270,14 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
                     responseStream = connector.doGet(URI.create(rootNode.get("nextRecordsUrl").getTextValue()));
                     rootNode = objectMapper.readTree(responseStream);
                     for (JsonNode node : rootNode.get("records")) {
-                        T resultObject = objectMapper.readValue(node, entityClass);
                         if (log.isDebugEnabled()) {
                             log.debug(String.format("...Result Row: %s", node.toString()));
                         }
-                        results.add(resultObject);
+                        if (resultClass.equals(JsonNode.class)) {
+                            results.add((resultClass.cast(node)));
+                        } else {
+                            results.add(objectMapper.readValue(node, resultClass));
+                        }
                     }
                 }
             } catch (IOException e) {
