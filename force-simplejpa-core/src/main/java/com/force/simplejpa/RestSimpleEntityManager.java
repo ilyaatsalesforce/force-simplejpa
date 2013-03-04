@@ -33,6 +33,9 @@ import java.util.Map;
 public final class RestSimpleEntityManager implements SimpleEntityManager {
     private static final Logger log = LoggerFactory.getLogger(RestSimpleEntityManager.class);
 
+    final static String SHARING_SPECIFICATION_HEADER_NAME = "Work-Sharing-Specification";
+    final static String SHARING_SPECIFICATION_ATTRIBUTE_NAME = "sharingSpecification";
+
     // Configure the object mapper and descriptor provider. Note that the object mapper and descriptor provider are
     // intertwined and this makes initialization order important. We first create an empty object mapper and a
     // corresponding descriptor provider. After these two are wired together we can go ahead and configure the object
@@ -234,10 +237,10 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
         if (descriptor.hasAttributesMember()) {
             Map<String, String> attributes = EntityUtils.getAttributes(descriptor, entity);
             if (attributes != null) {
-                String sharingSpecification = attributes.get("sharingSpecification");
+                String sharingSpecification = attributes.get(SHARING_SPECIFICATION_ATTRIBUTE_NAME);
                 if (sharingSpecification != null) {
                     headers = new HashMap<String, String>();
-                    headers.put("Force-Sharing-Specification", sharingSpecification);
+                    headers.put(SHARING_SPECIFICATION_HEADER_NAME, sharingSpecification);
                 }
             }
         }
