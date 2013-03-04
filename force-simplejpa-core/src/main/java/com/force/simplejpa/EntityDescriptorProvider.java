@@ -78,14 +78,15 @@ final class EntityDescriptorProvider {
             try {
                 JavaType type = objectMapper.getTypeFactory().constructType(clazz);
                 BasicBeanDescription beanDescription = objectMapper.getDeserializationConfig().introspect(type);
-                String entityName = getEntityName(beanDescription);
-                BeanPropertyDefinition idProperty = getIdProperty(beanDescription);
-                EntityDescriptor entityDescriptor = new EntityDescriptor(entityName, beanDescription, idProperty);
+                EntityDescriptor entityDescriptor =
+                    new EntityDescriptor(
+                        getEntityName(beanDescription), beanDescription,
+                        getIdProperty(beanDescription), getAttributesProperty(beanDescription));
                 incompleteDescriptors.put(clazz, entityDescriptor);
 
                 // Resolve related entity descriptions recursively
                 for (BeanPropertyDefinition property : beanDescription.findProperties()) {
-                    EntityDescriptor relatedEntityDescriptor = get(getEntityClass(property));
+                    EntityDescriptor relatedEntityDescriptor = get(getPropertyClass(property));
                     if (relatedEntityDescriptor != null)
                         entityDescriptor.getRelatedEntities().put(property.getInternalName(), relatedEntityDescriptor);
                 }
@@ -129,6 +130,17 @@ final class EntityDescriptorProvider {
         return null;
     }
 
+    private static BeanPropertyDefinition getAttributesProperty(BasicBeanDescription beanDescription) {
+        for (BeanPropertyDefinition property : beanDescription.findProperties()) {
+            if (property.getName().equals("attributes")) {
+                if ( Map.class.isAssignableFrom(getPropertyClass(property))) {
+                    return property;
+                }
+            }
+        }
+        return null;
+    }
+
     private static boolean isIntrinsicJavaPackage(Package aPackage) {
         return (aPackage != null) && (aPackage.getName().startsWith("java."));
     }
@@ -141,11 +153,11 @@ final class EntityDescriptorProvider {
      *
      * @return the class of the property or, if the property is an array or collection, the class of the elements
      */
-    private static Class<?> getEntityClass(BeanPropertyDefinition property) {
+    private static Class<?> getPropertyClass(BeanPropertyDefinition property) {
         if (property.hasSetter()) {
-            return getEntityClass(property.getSetter().getParameterType(0));
+            return getPropertyClass(property.getSetter().getParameterType(0));
         } else if (property.hasField()) {
-            return getEntityClass(property.getField().getGenericType());
+            return getPropertyClass(property.getField().getGenericType());
         } else
             throw new IllegalArgumentException("I don't know how to deal with that kind of property definition");
     }
@@ -158,13 +170,13 @@ final class EntityDescriptorProvider {
      *
      * @return the class of the property or, if the property is an array or collection, the class of the elements
      */
-    private static Class<?> getEntityClass(Type propertyType) {
+    private static Class<?> getPropertyClass(Type propertyType) {
         if (propertyType instanceof ParameterizedType) {
             ParameterizedType parameterizedType = (ParameterizedType) propertyType;
             if (Collection.class.isAssignableFrom((Class<?>) parameterizedType.getRawType())) {
-                return getEntityClass(parameterizedType.getActualTypeArguments()[0]); // Return the element class
+                return getPropertyClass(parameterizedType.getActualTypeArguments()[0]); // Return the element class
             } else {
-                return getEntityClass(parameterizedType.getRawType());
+                return getPropertyClass(parameterizedType.getRawType());
             }
 
         } else if (propertyType instanceof Class) {

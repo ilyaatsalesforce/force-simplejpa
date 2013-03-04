@@ -18,6 +18,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.anyMapOf;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
@@ -27,6 +28,7 @@ import static org.mockito.Mockito.when;
  * @author davidbuccola
  */
 public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
+
     @Test
     public void testPersistSuccess() throws Exception {
         SimpleBean bean = new SimpleBean();
@@ -35,12 +37,12 @@ public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
         bean.setState("This is transient");
 
         when(
-            mockConnector.doCreate(anyString(), anyString()))
+            mockConnector.doCreate(anyString(), anyString(), anyMapOf(String.class, String.class)))
             .thenReturn(getResourceStream("persistSuccessResponse.json"));
 
         em.persist(bean);
 
-        verify(mockConnector).doCreate("SimpleBean", getResourceString("persistSuccessRequest.json"));
+        verify(mockConnector).doCreate("SimpleBean", getResourceString("persistSuccessRequest.json"), null);
     }
 
     @Test(expected = EntityResponseException.class)
@@ -50,7 +52,7 @@ public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
         bean.setDescription("Description 1");
 
         when(
-            mockConnector.doCreate(anyString(), anyString()))
+            mockConnector.doCreate(anyString(), anyString(), anyMapOf(String.class, String.class)))
             .thenReturn(getResourceStream("persistErrorResponse.json"));
 
         em.persist(bean);
@@ -63,7 +65,7 @@ public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
         bean.setDescription("Description 1");
 
         when(
-            mockConnector.doCreate(anyString(), anyString()))
+            mockConnector.doCreate(anyString(), anyString(), anyMapOf(String.class, String.class)))
             .thenReturn(getResourceStream("persistInvalidResponse.json"));
 
         em.persist(bean);
@@ -80,12 +82,12 @@ public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
         bean.setOwner(new UserMoniker("a01i00000000203"));
 
         when(
-            mockConnector.doCreate(anyString(), anyString()))
+            mockConnector.doCreate(anyString(), anyString(), anyMapOf(String.class, String.class)))
             .thenReturn(getResourceStream("persistSuccessResponse.json"));
 
         em.persist(bean);
 
-        verify(mockConnector).doCreate("StandardFieldBean", getResourceString("persistStandardFieldsRequest.json"));
+        verify(mockConnector).doCreate("StandardFieldBean", getResourceString("persistStandardFieldsRequest.json"), null);
     }
 
     @Test
@@ -97,12 +99,12 @@ public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
         bean.setNotInsertableOrUpdatable("Not insertable or updatable value");
 
         when(
-            mockConnector.doCreate(anyString(), anyString()))
+            mockConnector.doCreate(anyString(), anyString(), anyMapOf(String.class, String.class)))
             .thenReturn(getResourceStream("persistSuccessResponse.json"));
 
         em.persist(bean);
 
-        verify(mockConnector).doCreate("InsertableUpdatableBean", getResourceString("persistInsertableUpdatableRequest.json"));
+        verify(mockConnector).doCreate("InsertableUpdatableBean", getResourceString("persistInsertableUpdatableRequest.json"), null);
     }
 
     @Test
@@ -111,10 +113,10 @@ public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
         simpleBeanChanges.setId("a01i00000000001AAC");
         simpleBeanChanges.setDescription("Description 1");
 
-        doNothing().when(mockConnector).doUpdate(anyString(), anyString(), anyString());
+        doNothing().when(mockConnector).doUpdate(anyString(), anyString(), anyString(), anyMapOf(String.class, String.class));
         em.merge(simpleBeanChanges);
 
-        verify(mockConnector).doUpdate("SimpleBean", "a01i00000000001AAC", getResourceString("mergeSuccessRequest.json"));
+        verify(mockConnector).doUpdate("SimpleBean", "a01i00000000001AAC", getResourceString("mergeSuccessRequest.json"), null);
     }
 
     @Test(expected = EntityRequestException.class)
@@ -122,7 +124,7 @@ public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
         SimpleBean simpleBeanChanges = new SimpleBean();
         simpleBeanChanges.setDescription("Description 1");
 
-        doNothing().when(mockConnector).doUpdate(anyString(), anyString(), anyString());
+        doNothing().when(mockConnector).doUpdate(anyString(), anyString(), anyString(), anyMapOf(String.class, String.class));
         em.merge(simpleBeanChanges);
     }
 
@@ -137,10 +139,10 @@ public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
         standardFieldBeanChanges.setLastModifiedDate(new Date());
         standardFieldBeanChanges.setOwner(new UserMoniker("a01i00000000203"));
 
-        doNothing().when(mockConnector).doUpdate(anyString(), anyString(), anyString());
+        doNothing().when(mockConnector).doUpdate(anyString(), anyString(), anyString(), anyMapOf(String.class, String.class));
         em.merge(standardFieldBeanChanges);
 
-        verify(mockConnector).doUpdate("StandardFieldBean", "a01i00000000001AAC", getResourceString("mergeStandardFieldsRequest.json"));
+        verify(mockConnector).doUpdate("StandardFieldBean", "a01i00000000001AAC", getResourceString("mergeStandardFieldsRequest.json"), null);
     }
 
     @Test
@@ -148,10 +150,10 @@ public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
         SimpleBean simpleBean = new SimpleBean();
         simpleBean.setId("a01i00000000001AAC");
 
-        doNothing().when(mockConnector).doDelete(anyString(), anyString());
+        doNothing().when(mockConnector).doDelete(anyString(), anyString(), anyMapOf(String.class, String.class));
         em.remove(simpleBean);
 
-        verify(mockConnector).doDelete("SimpleBean", "a01i00000000001AAC");
+        verify(mockConnector).doDelete("SimpleBean", "a01i00000000001AAC", null);
     }
 
     @Test(expected = EntityRequestException.class)
@@ -159,13 +161,13 @@ public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
         SimpleBean simpleBean = new SimpleBean();
         simpleBean.setDescription("Description 1");
 
-        doNothing().when(mockConnector).doDelete(anyString(), anyString());
+        doNothing().when(mockConnector).doDelete(anyString(), anyString(), anyMapOf(String.class, String.class));
         em.remove(simpleBean);
     }
 
     @Test
     public void testFindSuccess() throws Exception {
-        when(mockConnector.doQuery(anyString())).thenReturn(getResourceStream("findSuccessResponse.json"));
+        when(mockConnector.doQuery(anyString(), anyMapOf(String.class, String.class))).thenReturn(getResourceStream("findSuccessResponse.json"));
 
         SimpleBean simpleBean = em.find(SimpleBean.class, "a01i00000000001AAC");
 
@@ -180,7 +182,7 @@ public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
 
     @Test
     public void testSimpleQuery() throws Exception {
-        when(mockConnector.doQuery(anyString())).thenReturn(getResourceStream("simpleQueryResponse.json"));
+        when(mockConnector.doQuery(anyString(), anyMapOf(String.class, String.class))).thenReturn(getResourceStream("simpleQueryResponse.json"));
 
         List<SimpleBean> beans = em.createQuery("select * from SimpleBean", SimpleBean.class).getResultList();
 
@@ -203,7 +205,7 @@ public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
 
     @Test
     public void testSubquery() throws Exception {
-        when(mockConnector.doQuery(anyString())).thenReturn(getResourceStream("simpleSubqueryResponse.json"));
+        when(mockConnector.doQuery(anyString(), anyMapOf(String.class, String.class))).thenReturn(getResourceStream("simpleSubqueryResponse.json"));
 
         List<SimpleContainerBean> containerBeans =
             em.createQuery("select * from SimpleContainerBean", SimpleContainerBean.class).getResultList();
@@ -246,7 +248,7 @@ public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
 
     @Test
     public void testAggregateQuery() throws Exception {
-        when(mockConnector.doQuery(anyString())).thenReturn(getResourceStream("aggregateQueryResponse.json"));
+        when(mockConnector.doQuery(anyString(), anyMapOf(String.class, String.class))).thenReturn(getResourceStream("aggregateQueryResponse.json"));
 
         List<JsonNode> jsonNodes =
             em.createQuery("select count(Id),Name FROM SimpleBean GROUP BY Name", SimpleBean.class).getResultList(JsonNode.class);

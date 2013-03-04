@@ -20,7 +20,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * An implementation of {@link SimpleEntityManager} that is based on the JSON representations of the Salesforce REST
@@ -74,8 +76,10 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
         }
 
         String json = convertToJsonForPersist(entity);
+
         optionallyLogRequest("Persist", descriptor.getName(), null, json);
-        InputStream responseStream = connector.doCreate(descriptor.getName(), json);
+
+        InputStream responseStream = connector.doCreate(descriptor.getName(), json, buildHeaders(descriptor, entity));
         JsonNode responseNode = parseJsonResponse(responseStream);
         if (!responseNode.has("success") || !responseNode.has("id")) {
             throw new EntityResponseException("JSON response is missing expected fields");
@@ -101,8 +105,15 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
         EntityDescriptor descriptor = getRequiredEntityDescriptor(entity.getClass());
         String id = getRequiredId(descriptor, entity);
         String json = convertToJsonForMerge(entity);
+
         optionallyLogRequest("Merge", descriptor.getName(), id, json);
-        connector.doUpdate(descriptor.getName(), id, json);
+
+        connector.doUpdate(descriptor.getName(), id, json, buildHeaders(descriptor, entity));
+
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("...Updated %s %s", descriptor.getName(), id));
+        }
+
         return entity;
     }
 
@@ -112,8 +123,10 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
 
         EntityDescriptor descriptor = getRequiredEntityDescriptor(entity.getClass());
         String id = getRequiredId(descriptor, entity);
+
         optionallyLogRequest("Remove", descriptor.getName(), id, null);
-        connector.doDelete(descriptor.getName(), id);
+
+        connector.doDelete(descriptor.getName(), id, buildHeaders(descriptor, entity));
 
         if (log.isDebugEnabled()) {
             log.debug(String.format("...Deleted %s %s", descriptor.getName(), id));
@@ -126,7 +139,9 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
         Validate.notNull(primaryKey, "primaryKey must not be null");
 
         EntityDescriptor descriptor = getRequiredEntityDescriptor(entityClass);
+
         optionallyLogRequest("Find", descriptor.getName(), primaryKey.toString(), null);
+
         return find(descriptor, entityClass, primaryKey);
     }
 
@@ -145,7 +160,9 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
         Validate.notNull(entityClass, "entityClass must not be null");
 
         final EntityDescriptor descriptor = getRequiredEntityDescriptor(entityClass);
+
         optionallyLogRequest("CreateQuery", descriptor.getName(), null, soqlTemplate);
+
         return createQuery(descriptor, soqlTemplate, entityClass);
     }
 
@@ -198,6 +215,40 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
         }
     }
 
+    /**
+     * Build up any entity-specific headers that we want to attach to the outbound REST request to Salesforce.
+     * <p/>
+     * There is currently just one of these. It is a special Salesforce internal attribute that specifies sharing
+     * conditions.
+     *
+     * @param descriptor descriptor of the entity
+     * @param entity     the entity instance
+     * @return entity-specific headers
+     */
+    private static Map<String, String> buildHeaders(EntityDescriptor descriptor, Object entity) {
+        if (entity == null) {
+            return null; // There are no headers defined yet that make sense without an entity
+        }
+
+        Map<String, String> headers = null;
+        if (descriptor.hasAttributesMember()) {
+            Map<String, String> attributes = EntityUtils.getAttributes(descriptor, entity);
+            if (attributes != null) {
+                String sharingSpecification = attributes.get("sharingSpecification");
+                if (sharingSpecification != null) {
+                    headers = new HashMap<String, String>();
+                    headers.put("Force-Sharing-Specification", sharingSpecification);
+                }
+            }
+        }
+
+        if (headers != null && log.isDebugEnabled()) {
+            log.debug(String.format("...With Headers: %s", headers.toString()));
+        }
+
+        return headers;
+    }
+
     private static void optionallyLogRequest(String operation, String entityTypeName, String id, String detail) {
         if (log.isDebugEnabled()) {
             if (id != null) {
@@ -219,7 +270,7 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
             if (sb.length() > 0)
                 return sb.toString();
         }
-        return "database error with no error message";
+        return "Salesforce persistence error with no message";
     }
 
     private final class RestSimpleTypedQuery<T> extends AbstractSimpleTypedQuery<T> {
@@ -252,7 +303,7 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
                     log.debug(String.format("...Query: %s", soql));
 
                 // Issue the query and parse the first batch of results.
-                InputStream responseStream = connector.doQuery(soql);
+                InputStream responseStream = connector.doQuery(soql, buildHeaders(descriptor, null));
                 JsonNode rootNode = objectMapper.readTree(responseStream);
                 for (JsonNode node : rootNode.get("records")) {
                     if (log.isDebugEnabled()) {
@@ -267,7 +318,8 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
 
                 // Request additional results if they exist
                 while (rootNode.get("nextRecordsUrl") != null) {
-                    responseStream = connector.doGet(URI.create(rootNode.get("nextRecordsUrl").getTextValue()));
+                    URI nextRecordsUrl = URI.create(rootNode.get("nextRecordsUrl").getTextValue());
+                    responseStream = connector.doGet(nextRecordsUrl, buildHeaders(descriptor, null));
                     rootNode = objectMapper.readTree(responseStream);
                     for (JsonNode node : rootNode.get("records")) {
                         if (log.isDebugEnabled()) {

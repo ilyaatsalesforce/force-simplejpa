@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.core.MediaType;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -73,47 +74,40 @@ public final class JerseyRestConnector implements RestConnector {
     }
 
     @Override
-    public InputStream doCreate(String entityType, String jsonBody) {
+    public InputStream doCreate(String entityType, String jsonBody, Map<String, String> headers) {
         try {
-            return getDataResource().path("sobjects").path(entityType)
-                .accept(MediaType.APPLICATION_JSON_TYPE)
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .post(InputStream.class, jsonBody);
+            WebResource.Builder resource = buildResource(getDataResource().path("sobjects").path(entityType), headers);
+            return resource.post(InputStream.class, jsonBody);
         } catch (UniformInterfaceException e) {
             throw new EntityRequestException(String.format("Create failed: %s", extractMessage(e)), e);
         }
     }
 
     @Override
-    public InputStream doGet(URI uri) {
+    public InputStream doGet(URI uri, Map<String, String> headers) {
         try {
-            return getDataResource().uri(uri)
-                .accept(MediaType.APPLICATION_JSON_TYPE)
-                .get(InputStream.class);
+            WebResource.Builder resource = buildResource(getDataResource().uri(uri), headers);
+            return resource.get(InputStream.class);
         } catch (UniformInterfaceException e) {
             throw new EntityRequestException(String.format("Get failed: %s", extractMessage(e)), e);
         }
     }
 
     @Override
-    public InputStream doQuery(String soql) {
+    public InputStream doQuery(String soql, Map<String, String> headers) {
         try {
-            return getDataResource().path("query")
-                .queryParam("q", soql)
-                .accept(MediaType.APPLICATION_JSON_TYPE)
-                .get(InputStream.class);
+            WebResource.Builder resource = buildResource(getDataResource().path("query").queryParam("q", soql), headers);
+            return resource.get(InputStream.class);
         } catch (UniformInterfaceException e) {
             throw new EntityRequestException(String.format("Query failed: %s", extractMessage(e)), e);
         }
     }
 
     @Override
-    public void doUpdate(String entityType, String id, String jsonBody) {
+    public void doUpdate(String entityType, String id, String jsonBody, Map<String, String> headers) {
         try {
-            ClientResponse response = getDataResource().path("sobjects").path(entityType).path(id)
-                .accept(MediaType.APPLICATION_JSON_TYPE)
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .method("PATCH", ClientResponse.class, jsonBody);
+            WebResource.Builder resource = buildResource(getDataResource().path("sobjects").path(entityType).path(id), headers);
+            ClientResponse response = resource.method("PATCH", ClientResponse.class, jsonBody);
 
             if (response.getStatus() >= 300) {
                 throw new UniformInterfaceException(response, true);
@@ -124,12 +118,10 @@ public final class JerseyRestConnector implements RestConnector {
     }
 
     @Override
-    public void doDelete(String entityType, String id) {
+    public void doDelete(String entityType, String id, Map<String, String> headers) {
         try {
-            ClientResponse response = getDataResource().path("sobjects").path(entityType).path(id)
-                .accept(MediaType.APPLICATION_JSON_TYPE)
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .delete(ClientResponse.class);
+            WebResource.Builder resource = buildResource(getDataResource().path("sobjects").path(entityType).path(id), headers);
+            ClientResponse response = resource.delete(ClientResponse.class);
 
             if (response.getStatus() >= 300) {
                 throw new UniformInterfaceException(response, true);
@@ -137,6 +129,18 @@ public final class JerseyRestConnector implements RestConnector {
         } catch (UniformInterfaceException e) {
             throw new EntityRequestException(String.format("Delete failed: %s", extractMessage(e)), e);
         }
+    }
+
+    private WebResource.Builder buildResource(WebResource resource, Map<String, String> headers) {
+        WebResource.Builder builder = resource
+            .accept(MediaType.APPLICATION_JSON_TYPE)
+            .type(MediaType.APPLICATION_JSON_TYPE);
+        if (headers != null) {
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                builder = builder.header(entry.getKey(), entry.getValue());
+            }
+        }
+        return builder;
     }
 
     private String extractMessage(UniformInterfaceException e) {

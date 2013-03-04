@@ -5,9 +5,10 @@
  */
 package com.force.simplejpa;
 
-import java.lang.reflect.InvocationTargetException;
-
 import org.codehaus.jackson.map.BeanPropertyDefinition;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
 
 /**
  * Utilities for working with entity instances.
@@ -20,11 +21,51 @@ public final class EntityUtils {
     }
 
     /**
+     * Gets the attributes property of an entity instance.
+     *
+     * @param descriptor descriptor of the entity
+     * @param instance   the entity instance from which to get the id
+     * @return the attributes
+     */
+    public static Map<String, String> getAttributes(EntityDescriptor descriptor, Object instance) {
+        if (descriptor.hasAttributesMember()) {
+            return getAttributes(descriptor.getAttributesProperty(), instance);
+        } else {
+            throw new IllegalArgumentException("The entity does not have an attributes member");
+        }
+    }
+
+    /**
+     * Gets the attributes property of an entity instance.
+     *
+     * @param attributesProperty definition of the attributesProperty
+     * @param instance           the entity instance from which to get the id
+     * @return the attributes
+     */
+    @SuppressWarnings("unchecked")
+    public static Map<String, String> getAttributes(BeanPropertyDefinition attributesProperty, Object instance) {
+        try {
+            Object attributes;
+            if (attributesProperty.hasGetter()) {
+                attributes = attributesProperty.getGetter().getAnnotated().invoke(instance);
+            } else if (attributesProperty.hasField()) {
+                attributes = attributesProperty.getField().getAnnotated().get(instance);
+            } else {
+                throw new IllegalStateException("There is no way to get the entity attributes");
+            }
+            return (Map<String, String>) attributes;
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
      * Gets the ID property of an entity instance.
      *
      * @param descriptor descriptor of the entity
      * @param instance   the entity instance from which to get the id
-     *
      * @return the id
      */
     public static String getEntityId(EntityDescriptor descriptor, Object instance) {
@@ -40,7 +81,6 @@ public final class EntityUtils {
      *
      * @param idProperty definition of the idProperty
      * @param instance   the entity instance from which to get the id
-     *
      * @return the id
      */
     public static String getEntityId(BeanPropertyDefinition idProperty, Object instance) {

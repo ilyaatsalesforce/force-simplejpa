@@ -7,6 +7,7 @@ package com.force.simplejpa;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Map;
 
 /**
  * A connector which knows how to issue requests to the Salesforce "data" REST API.
@@ -30,7 +31,7 @@ public interface RestConnector {
      *
      * @return input stream for the response body returned by Salesforce.
      */
-    InputStream doCreate(String entityType, String jsonBody);
+    InputStream doCreate(String entityType, String jsonBody, Map<String,String> headers);
 
     /**
      * Issues a GET request to an arbitrary Salesforce REST URI, usually for the purpose of picking up subsequent
@@ -40,7 +41,7 @@ public interface RestConnector {
      *
      * @return input stream for the response body returned by Salesforce.
      */
-    InputStream doGet(URI uri);
+    InputStream doGet(URI uri, Map<String,String> headers);
 
     /**
      * Issues a Salesforce SOQL query.
@@ -49,7 +50,7 @@ public interface RestConnector {
      *
      * @return input stream for the response body returned by Salesforce.
      */
-    InputStream doQuery(String soql);
+    InputStream doQuery(String soql, Map<String,String> headers);
 
     /**
      * Updates an existing Salesforce object.
@@ -59,7 +60,7 @@ public interface RestConnector {
      * @param jsonBody   the JSON encoded body for the update request. See Salesforce REST documentation for more
      *                   details on the format.
      */
-    void doUpdate(String entityType, String id, String jsonBody);
+    void doUpdate(String entityType, String id, String jsonBody, Map<String,String> headers);
 
     /**
      * Deletes an existing Salesforce object.
@@ -67,5 +68,5 @@ public interface RestConnector {
      * @param entityType the Salesforce object type
      * @param id         the Salesforce ID of the object
      */
-    void doDelete(String entityType, String id);
+    void doDelete(String entityType, String id, Map<String,String> headers);
 }
