@@ -5,7 +5,7 @@ configure(allprojects) {
     apply plugin: 'maven'
     apply plugin: 'signing'
 
-    version = '2.2'
+    version = '2.3-SNAPSHOT'
     group = "net.davidbuccola.${rootProject.name}"
 
     // Symbolic versions for select dependencies. The version of most dependencies is specified inline with the
