@@ -1,8 +1,11 @@
+import org.gradle.api.artifacts.maven.MavenDeployment
+
 configure(allprojects) {
     apply plugin: 'idea'
     apply plugin: 'maven'
+    apply plugin: 'signing'
 
-    version = '2.2-SNAPSHOT'
+    version = '2.2'
     group = "net.davidbuccola.${rootProject.name}"
 
     // Symbolic versions for select dependencies. The version of most dependencies is specified inline with the
@@ -95,6 +98,11 @@ configure(subprojects) {
         jvmArgs '-Xmx512m', '-XX:MaxPermSize=256m', '-XX:+HeapDumpOnOutOfMemoryError'
     }
 
+    signing {
+        required { !version.endsWith('SNAPSHOT') && gradle.taskGraph.hasTask('uploadArchives') }
+        sign configurations.archives
+    }
+
     install {
         repositories {
             mavenInstaller {
@@ -108,6 +116,9 @@ configure(subprojects) {
             mavenDeployer {
                 pom.whenConfigured { generatedPom ->
                     customizePom(generatedPom, project)
+                }
+                beforeDeployment {
+                    MavenDeployment deployment -> signing.signPom(deployment)
                 }
                 repository(url: 'https://oss.sonatype.org/content/repositories/releases/') {
                     if (project.hasProperty('sonatypeStagingUsername')) {
@@ -201,8 +212,8 @@ def customizePom(pom, gradleProject) {
         }
         scm {
             url = "https://github.com/davidbuccola/${rootProject.name}"
-            connection = "scm:git:git://github.com/davidbuccola/${rootProject.name}"
-            developerConnection = "scm:git:git://github.com/davidbuccola/${rootProject.name}"
+            connection = "scm:git:git://github.com/davidbuccola/${rootProject.name}.git"
+            developerConnection = "scm:git:git://github.com/davidbuccola/${rootProject.name}.git"
         }
         licenses {
             license {
