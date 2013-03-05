@@ -120,7 +120,7 @@ configure(subprojects) {
                 beforeDeployment {
                     MavenDeployment deployment -> signing.signPom(deployment)
                 }
-                repository(url: 'https://oss.sonatype.org/content/repositories/releases/') {
+                repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
                     if (project.hasProperty('sonatypeStagingUsername')) {
                         authentication(userName: sonatypeStagingUsername, password: sonatypeStagingPassword)
                     }
@@ -199,6 +199,7 @@ def customizePom(pom, gradleProject) {
         name = gradleProject.name
         description = gradleProject.description
         url = "https://github.com/davidbuccola/${rootProject.name}"
+        packaging 'jar'
         organization {
             name = 'David Buccola'
             url = 'https://github.com/davidbuccola'
