@@ -10,6 +10,7 @@ import java.net.URISyntaxException;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -18,14 +19,15 @@ import com.force.simplejpa.AuthorizationConnector;
 
 /**
  * An implementation of {@link AuthorizationConnector} which looks for the authorization information and instance
- * information in the headers of the currently active inbound Spring HTTP request.
+ * information in the headers of the currently active Spring HTTP request.
  * <p/>
  * The authorization header of the currently active inbound request is propagated to the outbound REST request. The
  * instance url information is expected in a header of name "Force-Instance-Url".
  *
  * @author davidbuccola
  */
-public class SpringRequestAuthorizationConnector implements AuthorizationConnector {
+@Component("authorizationConnector")
+public class SpringHeaderAuthorizationConnector implements AuthorizationConnector {
     @Override
     public final String getAuthorization() {
         return getAuthorization(getCurrentRequest());

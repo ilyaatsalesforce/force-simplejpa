@@ -16,10 +16,12 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
+ * A sample custom client factory.
+ *
  * @author dbuccola
  */
 public class CustomSpringClientFactory implements FactoryBean<Client> {
-    private JerseyClientFactory internalFactory = new JerseyClientFactory();
+    private ClientFactory internalFactory = new ClientFactory();
 
     @Autowired
     private AuthorizationConnector authorizationConnector;

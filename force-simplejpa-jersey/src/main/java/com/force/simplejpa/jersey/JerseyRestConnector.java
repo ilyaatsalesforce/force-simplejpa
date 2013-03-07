@@ -1,10 +1,11 @@
 /*
- * Copyright, 2012, SALESFORCE.com
+ * Copyright, 2012-2013, SALESFORCE.com
  * All Rights Reserved
  * Company Confidential
  */
 package com.force.simplejpa.jersey;
 
+import com.force.simplejpa.AuthorizationConnector;
 import com.force.simplejpa.EntityRequestException;
 import com.force.simplejpa.RestConnector;
 import com.google.common.cache.Cache;
@@ -37,23 +38,23 @@ public final class JerseyRestConnector implements RestConnector {
     private static final Logger log = LoggerFactory.getLogger(JerseyRestConnector.class);
     private static final Cache<URI, String> versionedPathCache = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.HOURS).build();
 
+    private final AuthorizationConnector authorizationConnector;
     private final Client client;
-    private final URI instanceUrl;
     private final String apiVersion;
-    private AtomicReference<WebResource> dataResourceHolder = new AtomicReference<WebResource>();
+
+    private final AtomicReference<WebResource> dataResourceHolder = new AtomicReference<WebResource>();
 
     /**
      * Constructs a new instance with the given instance URL and api version.
      *
-     * @param client      the fully configured Jersey client
-     * @param instanceUrl the URL of the instance to a {@link WebResource} which refers to a particular instance.
-     * @param apiVersion  an optional apiVersion. If specified as <code>null</code>, then the highest available API
-     *                    version supported by the server will be used.
+     * @param authorizationConnector the authorization connector used to obtain the instance URL
+     * @param client                 the fully configured Jersey client
+     * @param apiVersion             an optional apiVersion. If specified as <code>null</code>, then the highest
      */
-    public JerseyRestConnector(Client client, URI instanceUrl, String apiVersion) {
+    public JerseyRestConnector(AuthorizationConnector authorizationConnector, Client client, String apiVersion) {
         this.client = client;
-        this.instanceUrl = instanceUrl;
         this.apiVersion = apiVersion;
+        this.authorizationConnector = authorizationConnector;
     }
 
     /**
@@ -66,7 +67,7 @@ public final class JerseyRestConnector implements RestConnector {
     private WebResource getDataResource() {
         WebResource dataResource = dataResourceHolder.get();
         if (dataResource == null) {
-            WebResource instanceResource = client.resource(instanceUrl);
+            WebResource instanceResource = client.resource(authorizationConnector.getInstanceUrl());
             dataResource = instanceResource.path(getVersionedPath(instanceResource, apiVersion));
             dataResourceHolder.compareAndSet(null, dataResource);
         }

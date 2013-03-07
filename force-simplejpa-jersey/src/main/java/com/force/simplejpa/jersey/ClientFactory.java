@@ -1,5 +1,5 @@
 /*
- * Copyright, 2012, SALESFORCE.com 
+ * Copyright, 2012-2013, SALESFORCE.com
  * All Rights Reserved
  * Company Confidential
  */
@@ -30,10 +30,11 @@ import javax.ws.rs.core.HttpHeaders;
  *
  * @author dbuccola
  */
-public class JerseyClientFactory {
+public final class ClientFactory {
     /**
      * Creates a new instance of {@link Client} configured appropriately for SimpleEntityManager use.
      *
+     * @param authorizationConnector an authorization connector
      * @return a Client
      */
     public Client newInstance(AuthorizationConnector authorizationConnector) {
@@ -43,7 +44,8 @@ public class JerseyClientFactory {
     /**
      * Creates a new instance of {@link Client} configured appropriately for SimpleEntityManager use.
      *
-     * @param clientConfig configuration information for the client
+     * @param authorizationConnector an authorization connector
+     * @param clientConfig           configuration information for the client
      * @return a Client
      */
     public Client newInstance(final AuthorizationConnector authorizationConnector, ClientConfig clientConfig) {

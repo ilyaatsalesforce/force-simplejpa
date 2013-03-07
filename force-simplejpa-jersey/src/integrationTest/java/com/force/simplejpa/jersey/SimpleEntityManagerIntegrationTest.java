@@ -17,12 +17,11 @@ import java.util.Set;
  * @author davidbuccola
  */
 public class SimpleEntityManagerIntegrationTest {
-    private SimpleEntityManagerFactory emFactory = new SimpleEntityManagerFactory();
+    private SimpleEntityManager em = new SimpleEntityManagerFactory().newInstance();
     private Set<Object> objects = new HashSet<Object>();
 
     @After
     public void deleteTestObjects() {
-        SimpleEntityManager em = emFactory.newInstance();
         for (Object object : objects) {
             try {
                 em.remove(object);
@@ -34,7 +33,6 @@ public class SimpleEntityManagerIntegrationTest {
 
     @Test
     public void testPersistAndFind() {
-        SimpleEntityManager em = emFactory.newInstance();
         Contact contact = new Contact();
         contact.setFirstName("John");
         contact.setLastName("Smith");
@@ -47,7 +45,6 @@ public class SimpleEntityManagerIntegrationTest {
 
     @Test
     public void testMerge() {
-        SimpleEntityManager em = emFactory.newInstance();
         Contact contact = new Contact();
         contact.setFirstName("John");
         contact.setLastName("Smith");
@@ -72,7 +69,6 @@ public class SimpleEntityManagerIntegrationTest {
 
     @Test
     public void testRemove() {
-        SimpleEntityManager em = emFactory.newInstance();
         Contact contact = new Contact();
         contact.setFirstName("John");
         contact.setLastName("Smith");
