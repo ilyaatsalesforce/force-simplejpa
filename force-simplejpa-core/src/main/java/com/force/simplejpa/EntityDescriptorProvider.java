@@ -1,18 +1,9 @@
 /*
- * Copyright, 2012, SALESFORCE.com
+ * Copyright, 2012-2013, SALESFORCE.com
  * All Rights Reserved
  * Company Confidential
  */
 package com.force.simplejpa;
-
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.persistence.Id;
 
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.AnnotationIntrospector;
@@ -20,6 +11,14 @@ import org.codehaus.jackson.map.BeanPropertyDefinition;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.type.JavaType;
+
+import javax.persistence.Id;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A provider of {@link EntityDescriptor} instances.
@@ -49,7 +48,6 @@ final class EntityDescriptorProvider {
      * introspected to build a new descriptor and the new descriptor cached for future use.
      *
      * @param clazz the class for which an entity descriptor is desired
-     *
      * @return the entity descriptor
      */
     public EntityDescriptor get(Class<?> clazz) {
@@ -133,7 +131,7 @@ final class EntityDescriptorProvider {
     private static BeanPropertyDefinition getAttributesProperty(BasicBeanDescription beanDescription) {
         for (BeanPropertyDefinition property : beanDescription.findProperties()) {
             if (property.getName().equals("attributes")) {
-                if ( Map.class.isAssignableFrom(getPropertyClass(property))) {
+                if (Map.class.isAssignableFrom(getPropertyClass(property))) {
                     return property;
                 }
             }
@@ -150,7 +148,6 @@ final class EntityDescriptorProvider {
      * the class of the contained elements that is relevant. Otherwise the property class is the one we want.
      *
      * @param property the property definition
-     *
      * @return the class of the property or, if the property is an array or collection, the class of the elements
      */
     private static Class<?> getPropertyClass(BeanPropertyDefinition property) {
@@ -167,7 +164,6 @@ final class EntityDescriptorProvider {
      * the class of the contained elements that is relevant. Otherwise the property class is the one we want.
      *
      * @param propertyType the type of the property
-     *
      * @return the class of the property or, if the property is an array or collection, the class of the elements
      */
     private static Class<?> getPropertyClass(Type propertyType) {

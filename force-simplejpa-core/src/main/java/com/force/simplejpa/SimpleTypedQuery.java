@@ -1,5 +1,5 @@
 /*
- * Copyright, 2012, SALESFORCE.com
+ * Copyright, 2012-2013, SALESFORCE.com
  * All Rights Reserved
  * Company Confidential
  */
@@ -24,7 +24,8 @@ public interface SimpleTypedQuery<T> {
     /**
      * Execute a SOQL query and return the list of objects satisfying the query.
      *
-     * @param <R> the class of the returned object
+     * @param resultClass the class of the returned object
+     * @param <R>         the class of the returned object
      * @return the list of objects satisfying the query
      */
     <R> List<R> getResultList(Class<R> resultClass);

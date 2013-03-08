@@ -1,9 +1,13 @@
 /*
- * Copyright, 2012, SALESFORCE.com
+ * Copyright, 2012-2013, SALESFORCE.com
  * All Rights Reserved
  * Company Confidential
  */
 package com.force.simplejpa;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.codehaus.jackson.map.BeanPropertyDefinition;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -14,10 +18,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.codehaus.jackson.map.BeanPropertyDefinition;
 
 /**
  * Builder for generating SOQL to retrieve a particular type of entity. The type of entity for which SOQL is desired is
@@ -152,7 +152,7 @@ final class SoqlBuilder {
         List<String> fields = new ArrayList<String>();
         for (BeanPropertyDefinition property : descriptor.getBeanDescription().findProperties()) {
             String prefixedFieldName = prefix + property.getName();
-            if ( property.getName().equals("attributes")) {
+            if (property.getName().equals("attributes")) {
                 continue;
             }
             EntityDescriptor relatedDescriptor = descriptor.getRelatedEntities().get(property.getInternalName());

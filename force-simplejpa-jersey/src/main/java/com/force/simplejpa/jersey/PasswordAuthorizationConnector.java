@@ -1,17 +1,14 @@
 /*
- * Copyright, 2012, SALESFORCE.com
+ * Copyright, 2012-2013, SALESFORCE.com
  * All Rights Reserved
  * Company Confidential
  */
 package com.force.simplejpa.jersey;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import javax.ws.rs.core.MediaType;
-
+import com.force.simplejpa.AuthorizationConnector;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.UniformInterfaceException;
+import com.sun.jersey.api.representation.Form;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.codehaus.jackson.JsonNode;
@@ -20,10 +17,11 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.force.simplejpa.AuthorizationConnector;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.representation.Form;
+import javax.ws.rs.core.MediaType;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * An implementation of {@link AuthorizationConnector} which uses a username and password to obtain the authorization
@@ -47,8 +45,7 @@ public class PasswordAuthorizationConnector implements AuthorizationConnector {
      * <p/>
      * The environment must contain: <ul> <li>FORCE_USERNAME - the username of a Salesforce user</li> <li>FORCE_PASSWORD
      * - the password of a Salesforce user</li> <li>FORCE_CLIENT_ID - the client id of a Salesforce connected
-     * application</li> <li>FORCE_CLIENT_SECRET - the client secret of a Salesforce connected application</li>
-     * </ul>
+     * application</li> <li>FORCE_CLIENT_SECRET - the client secret of a Salesforce connected application</li> </ul>
      * <p/>
      * The environment can also contain: <ul> <li>FORCE_SERVER_URL - the Salesforce server URL</li> </ul>
      */
@@ -62,9 +59,9 @@ public class PasswordAuthorizationConnector implements AuthorizationConnector {
      * Constructs an instance with a username and password passed as parameters but the remaining information necessary
      * to perform an OAuth username-password flow passed coming from the environment.
      * <p/>
-     * The environment must contain: <ul> <li>FORCE_CLIENT_ID - the client id of a Salesforce connected
-     * application</li> <li>FORCE_CLIENT_SECRET - the client secret of a Salesforce connected application</li>
-     * </ul> The environment can also contain: <ul> <li>FORCE_SERVER_URL - the Salesforce server URL</li> </ul>
+     * The environment must contain: <ul> <li>FORCE_CLIENT_ID - the client id of a Salesforce connected application</li>
+     * <li>FORCE_CLIENT_SECRET - the client secret of a Salesforce connected application</li> </ul> The environment can
+     * also contain: <ul> <li>FORCE_SERVER_URL - the Salesforce server URL</li> </ul>
      *
      * @param username the username of a Salesforce user
      * @param password the password of a Salesforce user
@@ -143,6 +140,11 @@ public class PasswordAuthorizationConnector implements AuthorizationConnector {
         return instanceUrl;
     }
 
+    /**
+     * Returns a URL for obtaining user summary information from the Salesforce ID service.
+     *
+     * @return a URL for obtaining user summary information from the Salesforce ID service
+     */
     public URI getIdUrl() {
         return idUrl;
     }

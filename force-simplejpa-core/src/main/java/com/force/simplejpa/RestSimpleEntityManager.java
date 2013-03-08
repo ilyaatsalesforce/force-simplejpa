@@ -1,5 +1,5 @@
 /*
- * Copyright, 2012, SALESFORCE.com
+ * Copyright, 2012-2013, SALESFORCE.com
  * All Rights Reserved
  * Company Confidential
  */
@@ -33,8 +33,8 @@ import java.util.Map;
 public final class RestSimpleEntityManager implements SimpleEntityManager {
     private static final Logger log = LoggerFactory.getLogger(RestSimpleEntityManager.class);
 
-    final static String SHARING_SPECIFICATION_HEADER_NAME = "Work-Sharing-Specification";
-    final static String SHARING_SPECIFICATION_ATTRIBUTE_NAME = "sharingSpecification";
+    static final String SHARING_SPECIFICATION_HEADER_NAME = "Work-Sharing-Specification";
+    static final String SHARING_SPECIFICATION_ATTRIBUTE_NAME = "sharingSpecification";
 
     // Configure the object mapper and descriptor provider. Note that the object mapper and descriptor provider are
     // intertwined and this makes initialization order important. We first create an empty object mapper and a

@@ -1,5 +1,5 @@
 /*
- * Copyright, 2012, SALESFORCE.com
+ * Copyright, 2012-2013, SALESFORCE.com
  * All Rights Reserved
  * Company Confidential
  */
@@ -28,29 +28,29 @@ public interface RestConnector {
      * @param entityType the Salesforce object type
      * @param jsonBody   the JSON encoded body for the creation request. See Salesforce REST documentation for more
      *                   details on the format.
-     *
+     * @param headers    optional HTTP headers to add to the request.
      * @return input stream for the response body returned by Salesforce.
      */
-    InputStream doCreate(String entityType, String jsonBody, Map<String,String> headers);
+    InputStream doCreate(String entityType, String jsonBody, Map<String, String> headers);
 
     /**
      * Issues a GET request to an arbitrary Salesforce REST URI, usually for the purpose of picking up subsequent
      * batches of a paged query result.
      *
-     * @param uri the URI
-     *
+     * @param uri     the URI
+     * @param headers optional HTTP headers to add to the request.
      * @return input stream for the response body returned by Salesforce.
      */
-    InputStream doGet(URI uri, Map<String,String> headers);
+    InputStream doGet(URI uri, Map<String, String> headers);
 
     /**
      * Issues a Salesforce SOQL query.
      *
-     * @param soql the SOQL for the query
-     *
+     * @param soql    the SOQL for the query
+     * @param headers optional HTTP headers to add to the request.
      * @return input stream for the response body returned by Salesforce.
      */
-    InputStream doQuery(String soql, Map<String,String> headers);
+    InputStream doQuery(String soql, Map<String, String> headers);
 
     /**
      * Updates an existing Salesforce object.
@@ -59,14 +59,16 @@ public interface RestConnector {
      * @param id         the Salesforce ID of the object
      * @param jsonBody   the JSON encoded body for the update request. See Salesforce REST documentation for more
      *                   details on the format.
+     * @param headers    optional HTTP headers to add to the request.
      */
-    void doUpdate(String entityType, String id, String jsonBody, Map<String,String> headers);
+    void doUpdate(String entityType, String id, String jsonBody, Map<String, String> headers);
 
     /**
      * Deletes an existing Salesforce object.
      *
      * @param entityType the Salesforce object type
      * @param id         the Salesforce ID of the object
+     * @param headers    optional HTTP headers to add to the request.
      */
-    void doDelete(String entityType, String id, Map<String,String> headers);
+    void doDelete(String entityType, String id, Map<String, String> headers);
 }
