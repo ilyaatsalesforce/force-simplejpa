@@ -5,28 +5,19 @@
  */
 package com.force.simplejpa;
 
-import com.force.simplejpa.domain.InsertableUpdatableBean;
-import com.force.simplejpa.domain.SimpleBean;
-import com.force.simplejpa.domain.SimpleContainerBean;
-import com.force.simplejpa.domain.StandardFieldBean;
-import com.force.simplejpa.domain.UserMoniker;
+import com.force.simplejpa.domain.*;
 import org.codehaus.jackson.JsonNode;
 import org.junit.Test;
 
 import java.util.Date;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyMapOf;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
-/**
- * @author davidbuccola
- */
 public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
 
     @Test
@@ -45,8 +36,21 @@ public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
         verify(mockConnector).doCreate("SimpleBean", getResourceString("persistSuccessRequest.json"), null);
     }
 
-    @Test(expected = EntityResponseException.class)
-    public void testPersistError() throws Exception {
+    @Test
+    public void testPersistWithIdSet() throws Exception {
+        SimpleBean bean = new SimpleBean();
+        bean.setId("012345678901234");
+
+        try {
+            em.persist(bean);
+            fail("Didn't get expected exception");
+        } catch (EntityRequestException e) {
+            assertThat(e.getMessage(), is(equalTo("Id value should not exist for new object creation")));
+        }
+    }
+
+    @Test
+    public void testPersistErrorResponse() throws Exception {
         SimpleBean bean = new SimpleBean();
         bean.setName("Name 1");
         bean.setDescription("Description 1");
@@ -55,10 +59,15 @@ public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
             mockConnector.doCreate(anyString(), anyString(), anyMapOf(String.class, String.class)))
             .thenReturn(getResourceStream("persistErrorResponse.json"));
 
-        em.persist(bean);
+        try {
+            em.persist(bean);
+            fail("Didn't get expected exception");
+        } catch (EntityResponseException e) {
+            assertThat(e.getMessage(), is(equalTo("Error message 1; Error message 2")));
+        }
     }
 
-    @Test(expected = EntityResponseException.class)
+    @Test
     public void testPersistInvalidResponse() throws Exception {
         SimpleBean bean = new SimpleBean();
         bean.setName("Name 1");
@@ -68,7 +77,12 @@ public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
             mockConnector.doCreate(anyString(), anyString(), anyMapOf(String.class, String.class)))
             .thenReturn(getResourceStream("persistInvalidResponse.json"));
 
-        em.persist(bean);
+        try {
+            em.persist(bean);
+            fail("Didn't get expected exception");
+        } catch (EntityResponseException e) {
+            assertThat(e.getMessage(), is(equalTo("JSON response is missing expected fields")));
+        }
     }
 
     @Test
@@ -169,15 +183,15 @@ public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
     public void testFindSuccess() throws Exception {
         when(mockConnector.doQuery(anyString(), anyMapOf(String.class, String.class))).thenReturn(getResourceStream("findSuccessResponse.json"));
 
-        SimpleBean simpleBean = em.find(SimpleBean.class, "a01i00000000001AAC");
+        SimpleBean bean1 = em.find(SimpleBean.class, "a01i00000000001AAC");
 
-        assertNotNull(simpleBean);
+        assertThat(bean1, is(not(nullValue())));
 
-        assertEquals("SimpleBean", simpleBean.getAttributes().get("type"));
-        assertEquals("/services/data/v28.0/sobjects/SimpleBean/a01i00000000001", simpleBean.getAttributes().get("url"));
-        assertEquals("a01i00000000001", simpleBean.getId());
-        assertEquals("Name 1", simpleBean.getName());
-        assertEquals("Description 1", simpleBean.getDescription());
+        assertThat(bean1.getAttributes().get("type"), is(equalTo("SimpleBean")));
+        assertThat(bean1.getAttributes().get("url"), is(equalTo("/services/data/v28.0/sobjects/SimpleBean/a01i00000000001")));
+        assertThat(bean1.getId(), is(equalTo("a01i00000000001")));
+        assertThat(bean1.getName(), is(equalTo("Name 1")));
+        assertThat(bean1.getDescription(), is(equalTo("Description 1")));
     }
 
     @Test
@@ -186,21 +200,21 @@ public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
 
         List<SimpleBean> beans = em.createQuery("select * from SimpleBean", SimpleBean.class).getResultList();
 
-        assertEquals(2, beans.size());
+        assertThat(beans.size(), is(equalTo(2)));
 
         SimpleBean bean1 = beans.get(0);
-        assertEquals("SimpleBean", bean1.getAttributes().get("type"));
-        assertEquals("/services/data/v28.0/sobjects/SimpleBean/a01i00000000001", bean1.getAttributes().get("url"));
-        assertEquals("a01i00000000001", bean1.getId());
-        assertEquals("Name 1", bean1.getName());
-        assertEquals("Description 1", bean1.getDescription());
+        assertThat(bean1.getAttributes().get("type"), is(equalTo("SimpleBean")));
+        assertThat(bean1.getAttributes().get("url"), is(equalTo("/services/data/v28.0/sobjects/SimpleBean/a01i00000000001")));
+        assertThat(bean1.getId(), is(equalTo("a01i00000000001")));
+        assertThat(bean1.getName(), is(equalTo("Name 1")));
+        assertThat(bean1.getDescription(), is(equalTo("Description 1")));
 
         SimpleBean bean2 = beans.get(1);
-        assertEquals("SimpleBean", bean2.getAttributes().get("type"));
-        assertEquals("/services/data/v28.0/sobjects/SimpleBean/a01i00000000002", bean2.getAttributes().get("url"));
-        assertEquals("a01i00000000002", bean2.getId());
-        assertEquals("Name 2", bean2.getName());
-        assertEquals("Description 2", bean2.getDescription());
+        assertThat(bean2.getAttributes().get("type"), is(equalTo("SimpleBean")));
+        assertThat(bean2.getAttributes().get("url"), is(equalTo("/services/data/v28.0/sobjects/SimpleBean/a01i00000000002")));
+        assertThat(bean2.getId(), is(equalTo("a01i00000000002")));
+        assertThat(bean2.getName(), is(equalTo("Name 2")));
+        assertThat(bean2.getDescription(), is(equalTo("Description 2")));
     }
 
     @Test
@@ -210,40 +224,40 @@ public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
         List<SimpleContainerBean> containerBeans =
             em.createQuery("select * from SimpleContainerBean", SimpleContainerBean.class).getResultList();
 
-        assertEquals(1, containerBeans.size());
+        assertThat(containerBeans.size(), is(equalTo(1)));
 
         SimpleContainerBean containerBean1 = containerBeans.get(0);
-        assertEquals(2, containerBean1.getRelatedBeans().size());
+        assertThat(containerBean1.getRelatedBeans().size(), is(equalTo(2)));
 
         SimpleBean bean1 = containerBean1.getRelatedBeans().get(0);
-        assertEquals("SimpleBean", bean1.getAttributes().get("type"));
-        assertEquals("/services/data/v28.0/sobjects/SimpleBean/a01i00000000001", bean1.getAttributes().get("url"));
-        assertEquals("a01i00000000001", bean1.getId());
-        assertEquals("Name 1", bean1.getName());
-        assertEquals("Description 1", bean1.getDescription());
+        assertThat(bean1.getAttributes().get("type"), is(equalTo("SimpleBean")));
+        assertThat(bean1.getAttributes().get("url"), is(equalTo("/services/data/v28.0/sobjects/SimpleBean/a01i00000000001")));
+        assertThat(bean1.getId(), is(equalTo("a01i00000000001")));
+        assertThat(bean1.getName(), is(equalTo("Name 1")));
+        assertThat(bean1.getDescription(), is(equalTo("Description 1")));
 
         SimpleBean bean2 = containerBean1.getRelatedBeans().get(1);
-        assertEquals("SimpleBean", bean2.getAttributes().get("type"));
-        assertEquals("/services/data/v28.0/sobjects/SimpleBean/a01i00000000002", bean2.getAttributes().get("url"));
-        assertEquals("a01i00000000002", bean2.getId());
-        assertEquals("Name 2", bean2.getName());
-        assertEquals("Description 2", bean2.getDescription());
+        assertThat(bean2.getAttributes().get("type"), is(equalTo("SimpleBean")));
+        assertThat(bean2.getAttributes().get("url"), is(equalTo("/services/data/v28.0/sobjects/SimpleBean/a01i00000000002")));
+        assertThat(bean2.getId(), is(equalTo("a01i00000000002")));
+        assertThat(bean2.getName(), is(equalTo("Name 2")));
+        assertThat(bean2.getDescription(), is(equalTo("Description 2")));
 
-        assertEquals(2, containerBean1.getMoreRelatedBeans().length);
+        assertThat(containerBean1.getMoreRelatedBeans().length, is(equalTo(2)));
 
         SimpleBean bean3 = containerBean1.getMoreRelatedBeans()[0];
-        assertEquals("SimpleBean", bean3.getAttributes().get("type"));
-        assertEquals("/services/data/v28.0/sobjects/SimpleBean/a01i00000000003", bean3.getAttributes().get("url"));
-        assertEquals("a01i00000000003", bean3.getId());
-        assertEquals("Name 3", bean3.getName());
-        assertEquals("Description 3", bean3.getDescription());
+        assertThat(bean3.getAttributes().get("type"), is(equalTo("SimpleBean")));
+        assertThat(bean3.getAttributes().get("url"), is(equalTo("/services/data/v28.0/sobjects/SimpleBean/a01i00000000003")));
+        assertThat(bean3.getId(), is(equalTo("a01i00000000003")));
+        assertThat(bean3.getName(), is(equalTo("Name 3")));
+        assertThat(bean3.getDescription(), is(equalTo("Description 3")));
 
         SimpleBean bean4 = containerBean1.getMoreRelatedBeans()[1];
-        assertEquals("SimpleBean", bean4.getAttributes().get("type"));
-        assertEquals("/services/data/v28.0/sobjects/SimpleBean/a01i00000000004", bean4.getAttributes().get("url"));
-        assertEquals("a01i00000000004", bean4.getId());
-        assertEquals("Name 4", bean4.getName());
-        assertEquals("Description 4", bean4.getDescription());
+        assertThat(bean4.getAttributes().get("type"), is(equalTo("SimpleBean")));
+        assertThat(bean4.getAttributes().get("url"), is(equalTo("/services/data/v28.0/sobjects/SimpleBean/a01i00000000004")));
+        assertThat(bean4.getId(), is(equalTo("a01i00000000004")));
+        assertThat(bean4.getName(), is(equalTo("Name 4")));
+        assertThat(bean4.getDescription(), is(equalTo("Description 4")));
     }
 
     @Test
@@ -253,14 +267,14 @@ public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
         List<JsonNode> jsonNodes =
             em.createQuery("select count(Id),Name FROM SimpleBean GROUP BY Name", SimpleBean.class).getResultList(JsonNode.class);
 
-        assertEquals(2, jsonNodes.size());
+        assertThat(jsonNodes.size(), is(equalTo(2)));
 
         JsonNode node1 = jsonNodes.get(0);
-        assertEquals(1, node1.get("expr0").asInt());
-        assertEquals("Name 1", node1.get("Name").asText());
+        assertThat(node1.get("expr0").asInt(), is(equalTo(1)));
+        assertThat(node1.get("Name").asText(), is(equalTo("Name 1")));
 
         JsonNode node2 = jsonNodes.get(1);
-        assertEquals(1, node2.get("expr0").asInt());
-        assertEquals("Name 2", node2.get("Name").asText());
+        assertThat(node2.get("expr0").asInt(), is(equalTo(1)));
+        assertThat(node2.get("Name").asText(), is(equalTo("Name 2")));
     }
 }

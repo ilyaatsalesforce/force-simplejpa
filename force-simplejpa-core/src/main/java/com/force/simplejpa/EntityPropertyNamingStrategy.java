@@ -24,10 +24,8 @@ import static com.force.simplejpa.IntrospectionUtils.isRelationshipProperty;
  * related objects.
  * <p/>
  * See the descriptions below for more details on the transformations.
- *
- * @author davidbuccola
  */
-class EntityPropertyNamingStrategy extends PropertyNamingStrategy {
+final class EntityPropertyNamingStrategy extends PropertyNamingStrategy {
     private boolean forSerialization;
 
     EntityPropertyNamingStrategy(boolean forSerialization) {
@@ -50,8 +48,7 @@ class EntityPropertyNamingStrategy extends PropertyNamingStrategy {
     }
 
     @Override
-    public String nameForConstructorParameter(MapperConfig<?> config, AnnotatedParameter ctorParam,
-                                              String defaultName) {
+    public String nameForConstructorParameter(MapperConfig<?> config, AnnotatedParameter ctorParam, String defaultName) {
         return translate(ctorParam, defaultName);
     }
 
@@ -75,7 +72,7 @@ class EntityPropertyNamingStrategy extends PropertyNamingStrategy {
     }
 
     /**
-     * Translate a property name for a custom field by patterning if after the name of the enclosing custom entity. Make
+     * Translate a property name for a custom field by patterning it after the name of the enclosing custom entity. Make
      * sure to adjust for the special handling of relationship fields. For serialization of relationships we use the
      * "xxx__c" field name while for deserialization we use the "xxx__r" relationship name.
      *

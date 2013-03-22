@@ -13,8 +13,6 @@ import java.util.Date;
 
 /**
  * A test bean that includes the standard fields.
- *
- * @author dbuccola
  */
 @Entity
 public class StandardFieldBean {

@@ -12,14 +12,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Extra metadata about an entity that is used for certain advanced SimpleJPPA operations.
- * <p/>
- * This extra metadata is closely related to the metadata maintained by Jackson. The information is collected at the
- * same time as the core Jackson metadata (introspection time) and references some of the standard Jackson classes.
- *
- * @author dbuccola
+ * Extra metadata about an entity above and beyond that normally managed by Jackson that is useful for persistence
+ * operations. The information is collected at the same time as the core Jackson metadata (introspection time) and
+ * references some of the standard Jackson classes.
  */
-class EntityDescriptor {
+final class EntityDescriptor {
+
     private final String name;
     private final BeanPropertyDefinition idProperty;
     private final BeanPropertyDefinition attributesProperty;

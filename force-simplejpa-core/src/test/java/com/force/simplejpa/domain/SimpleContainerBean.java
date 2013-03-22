@@ -5,20 +5,16 @@
  */
 package com.force.simplejpa.domain;
 
-import java.util.List;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import java.util.List;
 
-/**
- * @author dbuccola
- */
 @Entity
 public class SimpleContainerBean {
     @Id
-    @Column( name = "Id")
+    @Column(name = "Id")
     private String id;
 
     @OneToMany

@@ -7,8 +7,6 @@ package com.force.simplejpa;
 
 /**
  * A simple JPA-like entity manager for interacting with Salesforce object persistence.
- *
- * @author davidbuccola
  */
 public interface SimpleEntityManager {
     /**

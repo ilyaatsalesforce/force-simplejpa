@@ -6,14 +6,14 @@
 package com.force.simplejpa.domain;
 
 import javax.persistence.Column;
+import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
 /**
  * A test bean that is helps test recursive type references.
- *
- * @author dbuccola
  */
+@Entity
 public class RecursiveBean {
     @Id
     @Column(name = "Id")

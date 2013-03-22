@@ -11,7 +11,6 @@ import java.util.List;
  * A simple JPA-like interface for controlling the execution of SOQL queries.
  *
  * @param <T> type of object returned by the query
- * @author davidbuccola
  */
 public interface SimpleTypedQuery<T> {
     /**

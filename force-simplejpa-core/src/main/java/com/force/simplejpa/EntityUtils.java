@@ -7,13 +7,12 @@ package com.force.simplejpa;
 
 import org.codehaus.jackson.map.BeanPropertyDefinition;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 /**
  * Utilities for working with entity instances.
- *
- * @author dbuccola
  */
 public final class EntityUtils {
     private EntityUtils() {
@@ -49,7 +48,9 @@ public final class EntityUtils {
             if (attributesProperty.hasGetter()) {
                 attributes = attributesProperty.getGetter().getAnnotated().invoke(instance);
             } else if (attributesProperty.hasField()) {
-                attributes = attributesProperty.getField().getAnnotated().get(instance);
+                Field field = attributesProperty.getField().getAnnotated();
+                field.setAccessible(true);
+                attributes = field.get(instance);
             } else {
                 throw new IllegalStateException("There is no way to get the entity attributes");
             }
@@ -89,7 +90,9 @@ public final class EntityUtils {
             if (idProperty.hasGetter()) {
                 id = idProperty.getGetter().getAnnotated().invoke(instance);
             } else if (idProperty.hasField()) {
-                id = idProperty.getField().getAnnotated().get(instance);
+                Field field = idProperty.getField().getAnnotated();
+                field.setAccessible(true);
+                id = field.get(instance);
             } else {
                 throw new IllegalStateException("There is no way to get the entity id");
             }
@@ -124,11 +127,13 @@ public final class EntityUtils {
      * @param value      the id
      */
     public static void setEntityId(BeanPropertyDefinition idProperty, Object instance, String value) {
-        if (idProperty.hasSetter())
+        if (idProperty.hasSetter()) {
             idProperty.getSetter().setValue(instance, value);
-        else if (idProperty.hasField())
+        } else if (idProperty.hasField()) {
+            Field field = idProperty.getField().getAnnotated();
+            field.setAccessible(true);
             idProperty.getField().setValue(instance, value);
-        else
+        } else
             throw new IllegalArgumentException("There is no way to set the entity id");
     }
 }

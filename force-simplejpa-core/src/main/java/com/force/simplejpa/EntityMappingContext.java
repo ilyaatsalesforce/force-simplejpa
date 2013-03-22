@@ -6,9 +6,12 @@
 package com.force.simplejpa;
 
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.BeanPropertyDefinition;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.map.deser.StdDeserializerProvider;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.type.JavaType;
 
@@ -21,24 +24,45 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * A provider of {@link EntityDescriptor} instances.
+ * Context for mapping annotated persistent entities to and from the JSON representations of the Salesforce generic
+ * REST API.
  *
- * @author davidbuccola
+ * This context includes the basic Jackson {@link ObjectMapper} configured appropriately for serialization and
+ * deserialization as well as extra metadata in the form of {@link EntityDescriptor} for use in making other advanced
+ * choices related to entity persistence.
  */
-final class EntityDescriptorProvider {
+public final class EntityMappingContext {
     private final ObjectMapper objectMapper;
     private final Map<Class<?>, EntityDescriptor> descriptors = new ConcurrentHashMap<Class<?>, EntityDescriptor>();
     private final Map<Class<?>, EntityDescriptor> incompleteDescriptors = new HashMap<Class<?>, EntityDescriptor>();
 
     /**
-     * Constructs a new provider instance.
-     *
-     * @param objectMapper the object mapper which helps to obtain entity details when a new entity descriptor needs to
-     *                     be built. We don't ask the mapper to do any serialization or deserialization but just
-     *                     leverage the mapper's skill at introspecting object details.
+     * Constructs a new instance.
      */
-    public EntityDescriptorProvider(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
+    public EntityMappingContext() {
+        objectMapper = new ObjectMapper();
+        objectMapper.setDeserializerProvider(new StdDeserializerProvider(new SubqueryDeserializerFactory()));
+        objectMapper.setSerializationConfig(
+                objectMapper.getSerializationConfig()
+                        .withSerializationInclusion(JsonSerialize.Inclusion.NON_NULL)
+                        .withPropertyNamingStrategy(new EntityPropertyNamingStrategy(true))
+                        .withAnnotationIntrospector(new SimpleJpaAnnotationIntrospector(this)));
+        objectMapper.setDeserializationConfig(
+                objectMapper.getDeserializationConfig()
+                        .withPropertyNamingStrategy(new EntityPropertyNamingStrategy(false))
+                        .withAnnotationIntrospector(new SimpleJpaAnnotationIntrospector(this)));
+        objectMapper.setVisibilityChecker(
+                objectMapper.getVisibilityChecker().withFieldVisibility(JsonAutoDetect.Visibility.ANY));
+    }
+
+    /**
+     * Gets the {@link ObjectMapper} appropriate for serializing and deserializing the persistent entities for use with
+     * the generic Salesforce REST API.
+     *
+     * @return an object mapper
+     */
+    public ObjectMapper getObjectMapper() {
+        return objectMapper;
     }
 
     /**
@@ -50,21 +74,21 @@ final class EntityDescriptorProvider {
      * @param clazz the class for which an entity descriptor is desired
      * @return the entity descriptor
      */
-    public EntityDescriptor get(Class<?> clazz) {
+    public EntityDescriptor getEntityDescriptor(Class<?> clazz) {
         EntityDescriptor descriptor = descriptors.get(clazz);
         if (descriptor != null)
             return descriptor;
 
-        if (clazz.isPrimitive() || clazz.equals(Object.class) || isIntrinsicJavaPackage(clazz.getPackage()))
+        if (clazz.isPrimitive() || isIntrinsicJavaPackage(clazz.getPackage()))
             return null; // Primitive types can't be entities and therefore have no descriptions.
 
         if (clazz.isEnum())
             return null; // Enums can't be entities
 
-        return create(clazz);
+        return createEntityDescriptor(clazz);
     }
 
-    private EntityDescriptor create(Class<?> clazz) {
+    private EntityDescriptor createEntityDescriptor(Class<?> clazz) {
         synchronized (incompleteDescriptors) { // Just one thread can create at a time. Creation doesn't happen often.
 
             // If we already have something under construction then return it. (Comes into play for recursive calls
@@ -84,7 +108,7 @@ final class EntityDescriptorProvider {
 
                 // Resolve related entity descriptions recursively
                 for (BeanPropertyDefinition property : beanDescription.findProperties()) {
-                    EntityDescriptor relatedEntityDescriptor = get(getPropertyClass(property));
+                    EntityDescriptor relatedEntityDescriptor = getEntityDescriptor(getPropertyClass(property));
                     if (relatedEntityDescriptor != null)
                         entityDescriptor.getRelatedEntities().put(property.getInternalName(), relatedEntityDescriptor);
                 }

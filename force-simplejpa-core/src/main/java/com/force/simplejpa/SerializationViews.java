@@ -7,8 +7,6 @@ package com.force.simplejpa;
 
 /**
  * View definitions for controlling Jackson serialization.
- *
- * @author dbuccola
  */
 class SerializationViews {
     /**

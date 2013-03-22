@@ -36,8 +36,6 @@ import java.util.regex.Pattern;
  * *
  * Modules.*
  * </pre>
- *
- * @author davidbuccola
  */
 final class SoqlBuilder {
     private static final int DEFAULT_DEPTH = 5;

@@ -11,8 +11,6 @@ import javax.persistence.Id;
 
 /**
  * A test bean with fields that choose whether they are insertable or updatable.
- *
- * @author dbuccola
  */
 @Entity
 public class InsertableUpdatableBean {

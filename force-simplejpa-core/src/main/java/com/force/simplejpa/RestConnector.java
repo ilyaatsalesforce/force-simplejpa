@@ -18,8 +18,6 @@ import java.util.Map;
  * The methods on this interface correspond to the kinds of thing you want to do with the Salesforce REST api, not the
  * kinds of generic things you want to do with REST. In other words, this interface is not intended to be some general
  * purpose facade on top of HTTP libraries. It is, instead, very specific to the Salesforce REST task at hand.
- *
- * @author davidbuccola
  */
 public interface RestConnector {
     /**

@@ -8,10 +8,7 @@ package com.force.simplejpa;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.deser.StdDeserializerProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,8 +24,6 @@ import java.util.Map;
 /**
  * An implementation of {@link SimpleEntityManager} that is based on the JSON representations of the Salesforce REST
  * API.
- *
- * @author dbuccola
  */
 public final class RestSimpleEntityManager implements SimpleEntityManager {
     private static final Logger log = LoggerFactory.getLogger(RestSimpleEntityManager.class);
@@ -36,27 +31,9 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
     static final String SHARING_SPECIFICATION_HEADER_NAME = "Work-Sharing-Specification";
     static final String SHARING_SPECIFICATION_ATTRIBUTE_NAME = "sharingSpecification";
 
-    // Configure the object mapper and descriptor provider. Note that the object mapper and descriptor provider are
-    // intertwined and this makes initialization order important. We first create an empty object mapper and a
-    // corresponding descriptor provider. After these two are wired together we can go ahead and configure the object
-    // mapper details.
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-    private static final EntityDescriptorProvider descriptorProvider = new EntityDescriptorProvider(objectMapper);
-
-    static {
-        objectMapper.setDeserializerProvider(new StdDeserializerProvider(new SubqueryDeserializerFactory()));
-        objectMapper.setSerializationConfig(
-            objectMapper.getSerializationConfig()
-                .withSerializationInclusion(JsonSerialize.Inclusion.NON_NULL)
-                .withPropertyNamingStrategy(new EntityPropertyNamingStrategy(true))
-                .withAnnotationIntrospector(new SimpleJpaAnnotationIntrospector(descriptorProvider)));
-        objectMapper.setDeserializationConfig(
-            objectMapper.getDeserializationConfig()
-                .withPropertyNamingStrategy(new EntityPropertyNamingStrategy(false))
-                .withAnnotationIntrospector(new SimpleJpaAnnotationIntrospector(descriptorProvider)));
-        objectMapper.setVisibilityChecker(
-            objectMapper.getVisibilityChecker().withFieldVisibility(JsonAutoDetect.Visibility.ANY));
-    }
+    // Just one mapping context is shared by all instances. It is thread-safe and configured the same every time. There
+    // is no reason to go through the expense of creating multiple instances. This way we get to share the cache.
+    private static final EntityMappingContext mappingContext = new EntityMappingContext();
 
     private RestConnector connector;
 
@@ -174,7 +151,7 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
     }
 
     private EntityDescriptor getRequiredEntityDescriptor(Class<?> clazz) {
-        EntityDescriptor descriptor = descriptorProvider.get(clazz);
+        EntityDescriptor descriptor = mappingContext.getEntityDescriptor(clazz);
         if (descriptor == null) {
             throw new IllegalArgumentException(
                 String.format("%s can't be used as an entity, probably because it isn't annotated", clazz.getName()));
@@ -194,9 +171,13 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
         }
     }
 
+    private ObjectMapper getObjectMapper() {
+        return mappingContext.getObjectMapper();
+    }
+
     private String convertToJsonForPersist(Object entity) {
         try {
-            return objectMapper.writerWithView(SerializationViews.Persist.class).writeValueAsString(entity);
+            return getObjectMapper().writerWithView(SerializationViews.Persist.class).writeValueAsString(entity);
         } catch (IOException e) {
             throw new EntityResponseException("Failed to encode entity as JSON", e);
         }
@@ -204,7 +185,7 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
 
     private String convertToJsonForMerge(Object entity) {
         try {
-            return objectMapper.writerWithView(SerializationViews.Merge.class).writeValueAsString(entity);
+            return getObjectMapper().writerWithView(SerializationViews.Merge.class).writeValueAsString(entity);
         } catch (IOException e) {
             throw new EntityResponseException("Failed to encode entity as JSON", e);
         }
@@ -212,7 +193,7 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
 
     private JsonNode parseJsonResponse(InputStream inputStream) {
         try {
-            return objectMapper.readTree(inputStream);
+            return getObjectMapper().readTree(inputStream);
         } catch (IOException e) {
             throw new EntityResponseException("Failed to parse JSON response stream", e);
         }
@@ -307,7 +288,7 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
 
                 // Issue the query and parse the first batch of results.
                 InputStream responseStream = connector.doQuery(soql, buildHeaders(descriptor, null));
-                JsonNode rootNode = objectMapper.readTree(responseStream);
+                JsonNode rootNode = getObjectMapper().readTree(responseStream);
                 for (JsonNode node : rootNode.get("records")) {
                     if (log.isDebugEnabled()) {
                         log.debug(String.format("...Result Row: %s", node.toString()));
@@ -315,7 +296,7 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
                     if (resultClass.equals(JsonNode.class)) {
                         results.add((resultClass.cast(node)));
                     } else {
-                        results.add(objectMapper.readValue(node, resultClass));
+                        results.add(getObjectMapper().readValue(node, resultClass));
                     }
                 }
 
@@ -323,7 +304,7 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
                 while (rootNode.get("nextRecordsUrl") != null) {
                     URI nextRecordsUrl = URI.create(rootNode.get("nextRecordsUrl").getTextValue());
                     responseStream = connector.doGet(nextRecordsUrl, buildHeaders(descriptor, null));
-                    rootNode = objectMapper.readTree(responseStream);
+                    rootNode = getObjectMapper().readTree(responseStream);
                     for (JsonNode node : rootNode.get("records")) {
                         if (log.isDebugEnabled()) {
                             log.debug(String.format("...Result Row: %s", node.toString()));
@@ -331,7 +312,7 @@ public final class RestSimpleEntityManager implements SimpleEntityManager {
                         if (resultClass.equals(JsonNode.class)) {
                             results.add((resultClass.cast(node)));
                         } else {
-                            results.add(objectMapper.readValue(node, resultClass));
+                            results.add(getObjectMapper().readValue(node, resultClass));
                         }
                     }
                 }

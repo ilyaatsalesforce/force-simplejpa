@@ -22,8 +22,6 @@ import static org.mockito.Mockito.mock;
  * with the network inputs and outputs of the {@link SimpleEntityManager}.
  * <p/>
  * Also included here are some utility routines for reading mock network requests and responses from resources.
- *
- * @author dbuccola
  */
 public abstract class AbstractSimpleEntityManagerTest {
     private String resourcePrefix = this.getClass().getPackage().getName().replace('.', '/');

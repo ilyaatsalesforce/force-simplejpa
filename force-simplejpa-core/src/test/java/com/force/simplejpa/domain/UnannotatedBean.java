@@ -1,24 +1,14 @@
 /*
- * Copyright, 2013, SALESFORCE.com 
+ * Copyright, 2012-2013, SALESFORCE.com
  * All Rights Reserved
  * Company Confidential
  */
 package com.force.simplejpa.domain;
 
-import javax.persistence.Column;
-import javax.persistence.Id;
-
-public class UserMoniker {
-    @Id
-    @Column(name = "Id")
+public class UnannotatedBean {
     private String id;
 
-    @Column(name = "Name")
     private String name;
-
-    public UserMoniker(String id) {
-        this.id = id;
-    }
 
     public String getId() {
         return id;

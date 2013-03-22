@@ -11,25 +11,22 @@ import javax.persistence.Id;
 import javax.persistence.Transient;
 import java.util.Map;
 
-/**
- * @author dbuccola
- */
 @Entity
 public class SimpleBean {
     @Id
-    @Column( name = "Id")
+    @Column(name = "Id")
     private String id;
 
-    @Column( name = "Name")
+    @Column(name = "Name")
     private String name;
 
-    @Column( name = "Description")
+    @Column(name = "Description")
     private String description;
 
     @Transient
     private String state;
 
-    private Map<String,String> attributes;
+    private Map<String, String> attributes;
 
     public String getId() {
         return id;
@@ -70,6 +67,4 @@ public class SimpleBean {
     public void setAttributes(Map<String, String> attributes) {
         this.attributes = attributes;
     }
-
-
 }

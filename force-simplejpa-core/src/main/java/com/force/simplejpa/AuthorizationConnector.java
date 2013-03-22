@@ -1,5 +1,5 @@
 /*
- * Copyright, 2012, SALESFORCE.com
+ * Copyright, 2012-2013, SALESFORCE.com
  * All Rights Reserved
  * Company Confidential
  */
@@ -12,8 +12,6 @@ import java.net.URI;
  * outbound REST request.
  * <p/>
  * This abstraction gives the surrounding application flexibility in how it obtains and stores the information.
- *
- * @author davidbuccola
  */
 public interface AuthorizationConnector {
     /**

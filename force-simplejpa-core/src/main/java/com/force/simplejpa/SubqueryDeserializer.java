@@ -24,8 +24,6 @@ import org.codehaus.jackson.map.JsonDeserializer;
  * <p/>
  * This special deserializer helps to wade through the extra metadata and arrive at the raw array of records which the
  * standard Jackson deserializers can then handle in the normal way.
- *
- * @author davidbuccola
  */
 class SubqueryDeserializer extends JsonDeserializer<Object> {
     private JsonDeserializer<?> delegate;

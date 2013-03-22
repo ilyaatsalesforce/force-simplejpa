@@ -21,8 +21,6 @@ import org.codehaus.jackson.map.introspect.AnnotatedMember;
 
 /**
  * Miscellaneous utilities for asking questions about entities and their metadata.
- *
- * @author davidbuccola
  */
 public final class IntrospectionUtils {
     // The names of standard Salesforce properties.

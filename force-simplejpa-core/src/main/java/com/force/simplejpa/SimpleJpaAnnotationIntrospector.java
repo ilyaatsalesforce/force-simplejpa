@@ -33,17 +33,15 @@ import static com.force.simplejpa.IntrospectionUtils.isRelationshipProperty;
  * An {@link org.codehaus.jackson.map.AnnotationIntrospector} which understands a useful subset of JPA annotations. The
  * JPA annotations provide basic information for serializing and deserializing (the usual Jackson stuff) and also
  * provides entity relationship information which is used in building SOQL queries.
- *
- * @author davidbuccola
  */
 class SimpleJpaAnnotationIntrospector extends NopAnnotationIntrospector {
-    private final EntityDescriptorProvider descriptorProvider;
+    private final EntityMappingContext mappingContext;
     private static final Class<?>[] NEVER_VIEWS = new Class<?>[]{SerializationViews.Never.class};
     private static final Class<?>[] PERSIST_VIEWS = new Class<?>[]{SerializationViews.Persist.class};
     private static final Class<?>[] MERGE_VIEWS = new Class<?>[]{SerializationViews.Merge.class};
 
-    SimpleJpaAnnotationIntrospector(EntityDescriptorProvider descriptorProvider) {
-        this.descriptorProvider = descriptorProvider;
+    SimpleJpaAnnotationIntrospector(EntityMappingContext mappingContext) {
+        this.mappingContext = mappingContext;
     }
 
     @Override
@@ -244,7 +242,7 @@ class SimpleJpaAnnotationIntrospector extends NopAnnotationIntrospector {
 
     @Override
     public Object findSerializer(Annotated annotated) {
-        final EntityDescriptor descriptor = descriptorProvider.get(annotated.getRawType());
+        final EntityDescriptor descriptor = mappingContext.getEntityDescriptor(annotated.getRawType());
         if (isRelationshipProperty(annotated) && descriptor != null) {
             // Return a member-specific serializer that serializes just the entity's id instead of the whole entity.
             // For serialization of relationships (headed to database.com) we just serialize the id. This is important

@@ -17,14 +17,13 @@ import org.codehaus.jackson.map.type.CollectionLikeType;
 import org.codehaus.jackson.map.type.CollectionType;
 
 /**
- * A special {@link DeserializerFactory} that knows how to create collection and array deserialiers which can deal with
+ * A special {@link DeserializerFactory} that knows how to create collection and array deserializers which can deal with
  * the Salesforce REST representation for SOQL subqueries.
  * <p/>
  * This factory is mostly a standard {@link DeserializerFactory} with the exception that collection and array
  * deserializers are decorated with {@link SubqueryDeserializer} to help deal with the extra information returned with
  * SOQL subquery results.
  *
- * @author davidbuccola
  * @see SubqueryDeserializer
  */
 class SubqueryDeserializerFactory extends BeanDeserializerFactory {

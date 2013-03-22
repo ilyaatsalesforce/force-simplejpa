@@ -1,5 +1,5 @@
 /*
- * Copyright, 2012, SALESFORCE.com
+ * Copyright, 2012-2013, SALESFORCE.com
  * All Rights Reserved
  * Company Confidential
  */
@@ -15,8 +15,6 @@ import javax.persistence.NonUniqueResultException;
  * classes just need to worry about implementing {@link com.force.simplejpa.SimpleTypedQuery#getResultList()}.
  *
  * @param <T> the class of returned values
- *
- * @author davidbuccola
  */
 abstract class AbstractSimpleTypedQuery<T> implements SimpleTypedQuery<T> {
     private int maxResults;
