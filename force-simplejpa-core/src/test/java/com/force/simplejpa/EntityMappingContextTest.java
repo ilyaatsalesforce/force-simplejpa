@@ -12,6 +12,7 @@ import static com.force.simplejpa.HasPropertyName.hasPropertyName;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
+@SuppressWarnings("unchecked")
 public class EntityMappingContextTest {
     private EntityMappingContext mappingContext = new EntityMappingContext();
 

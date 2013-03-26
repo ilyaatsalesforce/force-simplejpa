@@ -1,0 +1,17 @@
+{
+    "done": true,
+    "totalSize": 1,
+    "records": [
+        {
+            "attributes": {
+                "type": "DateTimeBean",
+                "url": "/services/data/v28.0/sobjects/DateTimeBean/a01i00000000001"
+            },
+            "Id": "a01i00000000001",
+            "JavaDateAndTime": "1999-04-01T08:14:56.000+0000",
+            "JavaDateOnly": "1999-04-01",
+            "JodaDateAndTime": "1999-04-01T08:14:56.000+0000",
+            "JodaDateOnly": "1999-04-01"
+        }
+    ]
+}

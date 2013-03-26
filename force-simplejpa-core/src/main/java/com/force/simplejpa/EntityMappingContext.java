@@ -24,9 +24,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Context for mapping annotated persistent entities to and from the JSON representations of the Salesforce generic
- * REST API.
- *
+ * Context for mapping annotated persistent entities to and from the JSON representations of the Salesforce generic REST
+ * API.
+ * <p/>
  * This context includes the basic Jackson {@link ObjectMapper} configured appropriately for serialization and
  * deserialization as well as extra metadata in the form of {@link EntityDescriptor} for use in making other advanced
  * choices related to entity persistence.
@@ -43,16 +43,16 @@ public final class EntityMappingContext {
         objectMapper = new ObjectMapper();
         objectMapper.setDeserializerProvider(new StdDeserializerProvider(new SubqueryDeserializerFactory()));
         objectMapper.setSerializationConfig(
-                objectMapper.getSerializationConfig()
-                        .withSerializationInclusion(JsonSerialize.Inclusion.NON_NULL)
-                        .withPropertyNamingStrategy(new EntityPropertyNamingStrategy(true))
-                        .withAnnotationIntrospector(new SimpleJpaAnnotationIntrospector(this)));
+            objectMapper.getSerializationConfig()
+                .withSerializationInclusion(JsonSerialize.Inclusion.NON_NULL)
+                .withPropertyNamingStrategy(new EntityPropertyNamingStrategy(true))
+                .withAnnotationIntrospector(new SimpleJpaAnnotationIntrospector(this)));
         objectMapper.setDeserializationConfig(
-                objectMapper.getDeserializationConfig()
-                        .withPropertyNamingStrategy(new EntityPropertyNamingStrategy(false))
-                        .withAnnotationIntrospector(new SimpleJpaAnnotationIntrospector(this)));
+            objectMapper.getDeserializationConfig()
+                .withPropertyNamingStrategy(new EntityPropertyNamingStrategy(false))
+                .withAnnotationIntrospector(new SimpleJpaAnnotationIntrospector(this)));
         objectMapper.setVisibilityChecker(
-                objectMapper.getVisibilityChecker().withFieldVisibility(JsonAutoDetect.Visibility.ANY));
+            objectMapper.getVisibilityChecker().withFieldVisibility(JsonAutoDetect.Visibility.ANY));
     }
 
     /**
@@ -79,8 +79,8 @@ public final class EntityMappingContext {
         if (descriptor != null)
             return descriptor;
 
-        if (clazz.isPrimitive() || isIntrinsicJavaPackage(clazz.getPackage()))
-            return null; // Primitive types can't be entities and therefore have no descriptions.
+        if (clazz.isPrimitive() || isIntrinsicJavaPackage(clazz.getPackage()) || isJodaTimePackage(clazz.getPackage()))
+            return null; // Primitive types can't be entities and therefore have no descriptors.
 
         if (clazz.isEnum())
             return null; // Enums can't be entities
@@ -165,6 +165,10 @@ public final class EntityMappingContext {
 
     private static boolean isIntrinsicJavaPackage(Package aPackage) {
         return (aPackage != null) && (aPackage.getName().startsWith("java."));
+    }
+
+    private static boolean isJodaTimePackage(Package aPackage) {
+        return (aPackage != null) && (aPackage.getName().startsWith("org.joda.time"));
     }
 
     /**

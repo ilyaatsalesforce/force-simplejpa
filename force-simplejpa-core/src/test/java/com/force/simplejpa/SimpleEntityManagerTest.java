@@ -5,18 +5,34 @@
  */
 package com.force.simplejpa;
 
-import com.force.simplejpa.domain.*;
+import com.force.simplejpa.domain.DateTimeBean;
+import com.force.simplejpa.domain.InsertableUpdatableBean;
+import com.force.simplejpa.domain.SimpleBean;
+import com.force.simplejpa.domain.SimpleContainerBean;
+import com.force.simplejpa.domain.StandardFieldBean;
+import com.force.simplejpa.domain.UserMoniker;
 import org.codehaus.jackson.JsonNode;
+import org.joda.time.DateMidnight;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.junit.Test;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyMapOf;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
 
@@ -276,5 +292,30 @@ public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
         JsonNode node2 = jsonNodes.get(1);
         assertThat(node2.get("expr0").asInt(), is(equalTo(1)));
         assertThat(node2.get("Name").asText(), is(equalTo("Name 2")));
+    }
+
+    @Test
+    public void testDateTime() throws Exception {
+        TimeZone gmtTimeZone = TimeZone.getTimeZone("GMT");
+        SimpleDateFormat iso8601Format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+        iso8601Format.setTimeZone(gmtTimeZone);
+        SimpleDateFormat justDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        justDateFormat.setTimeZone(gmtTimeZone);
+
+        Date javaDateAndTime = iso8601Format.parse("1999-04-01T08:14:56.000+0000");
+        Date javaDateOnly = justDateFormat.parse("1999-04-01");
+        DateTime jodaDateAndTime = new DateTime(javaDateAndTime.getTime(), DateTimeZone.UTC);
+        DateMidnight jodaDateOnly = new DateMidnight(javaDateOnly.getTime(), DateTimeZone.UTC);
+
+        when(mockConnector.doQuery(anyString(), anyMapOf(String.class, String.class))).thenReturn(getResourceStream("findDateTimeResponse.json"));
+
+        DateTimeBean bean = em.find(DateTimeBean.class, "a01i00000000001AAC");
+
+        assertThat(bean, is(not(nullValue())));
+
+        assertThat(bean.getJavaDateAndTime(), is(equalTo(javaDateAndTime)));
+        assertThat(bean.getJavaDateOnly(), is(equalTo(javaDateOnly)));
+        assertThat(bean.getJodaDateAndTime(), is(equalTo(jodaDateAndTime)));
+        assertThat(bean.getJodaDateOnly(), is(equalTo(jodaDateOnly)));
     }
 }
