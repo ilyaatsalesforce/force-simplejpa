@@ -10,6 +10,7 @@ import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.BeanPropertyDefinition;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.deser.StdDeserializerProvider;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
@@ -53,6 +54,7 @@ public final class EntityMappingContext {
                 .withAnnotationIntrospector(new SimpleJpaAnnotationIntrospector(this)));
         objectMapper.setVisibilityChecker(
             objectMapper.getVisibilityChecker().withFieldVisibility(JsonAutoDetect.Visibility.ANY));
+	    objectMapper.disable(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
     /**

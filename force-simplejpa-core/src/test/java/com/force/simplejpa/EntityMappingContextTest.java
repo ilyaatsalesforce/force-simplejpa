@@ -6,6 +6,7 @@
 package com.force.simplejpa;
 
 import com.force.simplejpa.domain.*;
+import org.codehaus.jackson.map.SerializationConfig;
 import org.junit.Test;
 
 import static com.force.simplejpa.HasPropertyName.hasPropertyName;
@@ -156,5 +157,11 @@ public class EntityMappingContextTest {
     public void testNoDescriptorForIntrinsicJavaPackage() {
         assertThat(mappingContext.getEntityDescriptor(Object.class), is(nullValue()));
         assertThat(mappingContext.getEntityDescriptor(String.class), is(nullValue()));
+    }
+
+    @Test
+    public void testWriteDatesAsTimestampsDisabledByDefault() {
+        assertThat(mappingContext.getObjectMapper().isEnabled(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS),
+            is(false));
     }
 }

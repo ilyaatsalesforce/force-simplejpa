@@ -5,8 +5,8 @@
  */
 package com.force.simplejpa.domain;
 
-import org.joda.time.DateMidnight;
 import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -29,7 +29,7 @@ public class DateTimeBean {
     private DateTime jodaDateAndTime;
 
     @Column(name = "JodaDateOnly")
-    private DateMidnight jodaDateOnly;
+    private LocalDate jodaDateOnly;
 
     public String getId() {
         return id;
@@ -63,11 +63,11 @@ public class DateTimeBean {
         this.jodaDateAndTime = jodaDateAndTime;
     }
 
-    public DateMidnight getJodaDateOnly() {
+    public LocalDate getJodaDateOnly() {
         return jodaDateOnly;
     }
 
-    public void setJodaDateOnly(DateMidnight jodaDateOnly) {
+    public void setJodaDateOnly(LocalDate jodaDateOnly) {
         this.jodaDateOnly = jodaDateOnly;
     }
 }

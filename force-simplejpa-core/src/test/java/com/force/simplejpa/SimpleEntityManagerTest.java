@@ -12,10 +12,11 @@ import com.force.simplejpa.domain.SimpleContainerBean;
 import com.force.simplejpa.domain.StandardFieldBean;
 import com.force.simplejpa.domain.UserMoniker;
 import org.codehaus.jackson.JsonNode;
-import org.joda.time.DateMidnight;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDate;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.TimeZone;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -305,7 +307,7 @@ public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
         Date javaDateAndTime = iso8601Format.parse("1999-04-01T08:14:56.000+0000");
         Date javaDateOnly = justDateFormat.parse("1999-04-01");
         DateTime jodaDateAndTime = new DateTime(javaDateAndTime.getTime(), DateTimeZone.UTC);
-        DateMidnight jodaDateOnly = new DateMidnight(javaDateOnly.getTime(), DateTimeZone.UTC);
+        LocalDate jodaDateOnly = LocalDate.parse("1999-04-01");
 
         when(mockConnector.doQuery(anyString(), anyMapOf(String.class, String.class))).thenReturn(getResourceStream("findDateTimeResponse.json"));
 
@@ -318,4 +320,44 @@ public class SimpleEntityManagerTest extends AbstractSimpleEntityManagerTest {
         assertThat(bean.getJodaDateAndTime(), is(equalTo(jodaDateAndTime)));
         assertThat(bean.getJodaDateOnly(), is(equalTo(jodaDateOnly)));
     }
+
+    @Test
+    public void testSerializeJodaLocalDateForPersist() throws Exception {
+        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+
+        when(mockConnector.doCreate(anyString(), argumentCaptor.capture(), anyMapOf(String.class, String.class))).thenReturn(getResourceStream("persistSuccessResponse.json"));
+
+        DateTimeBean bean = new DateTimeBean();
+        bean.setJodaDateOnly(new LocalDate(2013, 3, 25));
+
+        //Use current time for fields we are not checking
+        bean.setJavaDateAndTime(new Date());
+        bean.setJavaDateOnly(new Date());
+        bean.setJodaDateAndTime(DateTime.now());
+
+        em.persist(bean);
+
+        assertThat("The serialized JodaDate is in ISO format", argumentCaptor.getValue(), containsString("\"JodaDateOnly\":\"2013-03-25\""));
+    }
+
+    @Test
+    public void testSerializeJodaLocalDateForMerge() throws Exception {
+        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+
+        doNothing().when(mockConnector).doUpdate(anyString(), anyString(), argumentCaptor.capture(), anyMapOf(String.class, String.class));
+
+        DateTimeBean bean = new DateTimeBean();
+        bean.setId("a01i00000000001AAC");
+        bean.setJodaDateOnly(new LocalDate(2013, 3, 25));
+
+        //Use current time for fields we are not checking
+        bean.setJavaDateAndTime(new Date());
+        bean.setJavaDateOnly(new Date());
+        bean.setJodaDateAndTime(DateTime.now());
+
+        em.merge(bean);
+
+        assertThat("The serialized JodaDate is in ISO format", argumentCaptor.getValue(), containsString("\"JodaDateOnly\":\"2013-03-25\""));
+    }
+
 }
